@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">AndroidAcademyProject</string>
+    <string name="back_button">Back</string>
+    <string name="pg">13+</string>
+    <string name="tags">Action, Adventure, Fantasy</string>
+    <string name="avengers_title">"Avengers:\nEnd Game"</string>
+    <string name="reviews">125 Reviews</string>
+    <string name="storyline_title">Storyline</string>
+    <string name="storyline_description">"After the devastating events of Avengers:"
+"Infinity War, the universe is in ruins. With the help of remaining allies,"
+"the Avengers assemble once more in order to reverse Thanos'"
+"actions and restore balance to the universe."</string>
+    <string name="cast_title">Cast</string>
+    <string name="actor1_name">Robert Downey Jr.</string>
+    <string name="actor2_name">Chris Evans</string>
+    <string name="actor3_name">Mark Ruffalo</string>
+    <string name="actor4_name">Chris Hemsworth</string>
+    <string name="movie_poster_content_description">Avengers movie poster</string>
+    <string name="star_content_description">star icon</string>
 </resources>
