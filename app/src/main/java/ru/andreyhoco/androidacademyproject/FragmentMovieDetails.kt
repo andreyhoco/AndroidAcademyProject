@@ -18,8 +18,9 @@ class FragmentMovieDetails : Fragment() {
     private var reviewsLine: TextView? = null
     private var storylineText: TextView? = null
     private var castList: RecyclerView? = null
+    private var backButton: TextView? = null
 
-    var movie: Movie? = null
+    private var movie: Movie? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -31,6 +32,10 @@ class FragmentMovieDetails : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        backButton = view.findViewById(R.id.movie_details_back_button)
+        backButton?.setOnClickListener{
+            fragmentManager?.popBackStack()
+        }
         val movieId = this.arguments?.getInt("movie")
         movieId?.let {
             movie = getMovies()[it]
@@ -73,6 +78,7 @@ class FragmentMovieDetails : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        backButton = null
         posterImage = null
         pgText = null
         titleText = null
