@@ -69,7 +69,6 @@
         android:layout_marginHorizontal="6dp"
         android:buttonTint="@android:color/transparent"
         android:buttonTintMode="add"
-        android:background="@android:color/transparent"
         app:layout_constraintTop_toTopOf="@id/movie_item_poster"
         app:layout_constraintEnd_toEndOf="@id/movie_item_poster"
         android:button="@drawable/is_favorite"
