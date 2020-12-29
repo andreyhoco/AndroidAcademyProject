@@ -1,4 +1,4 @@
-package ru.andreyhoco.androidacademyproject
+package ru.andreyhoco.androidacademyproject.adapters
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -8,11 +8,15 @@ import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import ru.andreyhoco.androidacademyproject.R
+import ru.andreyhoco.androidacademyproject.data.Movie
 
 class MoviesAdapter(
     private val context: Context,
     private val clickListener: OnMovieItemClicked,
-    private val movies: List<Movie>
+    private val movies: List<Movie>,
 ) : RecyclerView.Adapter<MoviesAdapter.ViewHolder>() {
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -26,28 +30,23 @@ class MoviesAdapter(
 //        private val rating = TODO
 
         fun bind(movie: Movie) {
-            posterImage.setImageResource(movie.microPosterImageId)
             pgText.text = context.getString(
                 R.string.pg_with_placeholder,
-                movie.pg
+                movie.minimumAge
             )
             titleText.text = movie.title
-            genreLine.text = movie.genre.joinToString()
+            genreLine.text = movie.genres.joinToString { it.name }
             reviewsLine.text = context.getString(
                 R.string.reviews_with_placeholder,
-                movie.numberOfReviews
+                movie.numberOfRatings
             )
             durationLine.text = context.getString(
                 R.string.film_duration,
-                movie.durationInMinutes
+                movie.runtime
             )
-            isFavoriteButton.isChecked = movie.isFavorite
+            isFavoriteButton.isChecked = false
+            posterImage.loadImage(movie.poster)
         }
-
-        fun setIsFavoriteClickListener(listener: (View) -> Unit) {
-            isFavoriteButton.setOnClickListener(listener)
-        }
-
     }
 
     override fun getItemCount(): Int = movies.size
@@ -62,10 +61,18 @@ class MoviesAdapter(
         holder.itemView.setOnClickListener {
             clickListener.onClick(position)
         }
-
     }
 }
 
 interface OnMovieItemClicked {
-    fun onClick(position: Int)
+    fun onClick(movieId: Int)
+}
+
+fun ImageView.loadImage(imageUrl: String) {
+    Glide.with(this)
+        .load(imageUrl)
+        .placeholder(R.drawable.ic_baseline_movie_24)
+        .centerCrop()
+        .transform(RoundedCorners(15))
+        .into(this)
 }

@@ -11,16 +11,15 @@
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/actor_item_image"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:scaleType="centerCrop"
         tools:src="@drawable/johansson"
         android:background="@android:color/transparent"
-        app:shapeAppearanceOverlay="@style/roundedImageView"
-
-        />
+        app:shapeAppearanceOverlay="@style/roundedImageView" />
 
     <TextView
         android:id="@+id/actor_item_name"
@@ -35,6 +34,6 @@
         android:textSize="12sp"
         android:textStyle="bold"
         android:layout_marginTop="4dp"
-        app:layout_constraintHorizontal_bias="0"
-        />
+        app:layout_constraintHorizontal_bias="0" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
