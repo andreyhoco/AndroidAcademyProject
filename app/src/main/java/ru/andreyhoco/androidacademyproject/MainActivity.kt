@@ -3,9 +3,11 @@ package ru.andreyhoco.androidacademyproject
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.fragment.app.Fragment
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import ru.andreyhoco.androidacademyproject.data.Movie
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import ru.andreyhoco.androidacademyproject.network.RetrofitModule
+import timber.log.Timber
 
 class MainActivity : AppCompatActivity(), FragmentMoviesListListener {
     override fun onCreate(savedInstanceState: Bundle?) {

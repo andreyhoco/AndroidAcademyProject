@@ -9,7 +9,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import kotlinx.coroutines.CoroutineScope
 import ru.andreyhoco.androidacademyproject.R
 import ru.andreyhoco.androidacademyproject.data.Movie
 
@@ -40,10 +43,14 @@ class MoviesAdapter(
                 R.string.reviews_with_placeholder,
                 movie.numberOfRatings
             )
-            durationLine.text = context.getString(
-                R.string.film_duration,
-                movie.runtime
-            )
+            durationLine.text = if (movie.runtime == 0) {
+                ""
+            } else {
+                context.getString(
+                    R.string.film_duration,
+                    movie.runtime
+                )
+            }
             isFavoriteButton.isChecked = false
             posterImage.loadImage(movie.poster)
         }
@@ -59,7 +66,7 @@ class MoviesAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(movies[position])
         holder.itemView.setOnClickListener {
-            clickListener.onClick(position)
+            clickListener.onClick(movies[position].id)
         }
     }
 }
@@ -74,5 +81,6 @@ fun ImageView.loadImage(imageUrl: String) {
         .placeholder(R.drawable.ic_baseline_movie_24)
         .centerCrop()
         .transform(RoundedCorners(15))
+        .transition(DrawableTransitionOptions.withCrossFade())
         .into(this)
 }

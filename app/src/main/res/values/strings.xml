@@ -21,4 +21,9 @@
     <string name="star_content_description">star icon</string>
     <string name="movies_list_header">Movies list</string>
     <string name="film_duration">%1$d min</string>
+    <string name="server_error">"The server is currently unavailable."
+        "Please try again later."</string>
+    <string name="network_error">"Something went wrong."
+        "\nPlease check your internet connection and try again."</string>
+    <string name="try_again"><u>Try again</u></string>
 </resources>
