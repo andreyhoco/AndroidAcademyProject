@@ -6,14 +6,14 @@ import retrofit2.http.Query
 import ru.andreyhoco.androidacademyproject.network.responses.ActorsByMovieIdResponse
 import ru.andreyhoco.androidacademyproject.network.responses.ConfigurationResponse
 import ru.andreyhoco.androidacademyproject.network.responses.DetailedMovieResponse
-import ru.andreyhoco.androidacademyproject.network.responses.PopularMoviesResponse
+import ru.andreyhoco.androidacademyproject.network.responses.TopRatedMoviesResponse
 
 interface TmdbApiService {
     @GET("configuration")
     suspend fun getConfiguration(): ConfigurationResponse
 
-    @GET("movie/popular")
-    suspend fun getPopularMovies(@Query("page") pageNum: Int): PopularMoviesResponse
+    @GET("movie/top_rated")
+    suspend fun getTopRatedMovies(@Query("page") pageNum: Int): TopRatedMoviesResponse
 
     @GET("movie/{movie_id}")
     suspend fun getMovieById(@Path("movie_id") movieId: Long): DetailedMovieResponse

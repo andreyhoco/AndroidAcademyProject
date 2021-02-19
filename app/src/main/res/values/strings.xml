@@ -22,8 +22,8 @@
     <string name="movies_list_header">Movies list</string>
     <string name="film_duration">%1$d min</string>
     <string name="server_error">"The server is currently unavailable."
-        "Please try again later."</string>
-    <string name="network_error">"Something went wrong."
-        "\nPlease check your internet connection and try again."</string>
+        "The displayed data may be out of date."</string>
+    <string name="network_error">"No internet connection."
+        "The displayed data may be out of date."</string>
     <string name="try_again"><u>Try again</u></string>
 </resources>

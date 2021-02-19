@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorShadowBackground"
-    tools:context=".FragmentMoviesList">
+    tools:context="ru.andreyhoco.androidacademyproject.ui.view.FragmentMoviesList">
 
     <TextView
         android:id="@+id/movies_list_header"
