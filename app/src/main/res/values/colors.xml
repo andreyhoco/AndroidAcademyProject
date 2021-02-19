@@ -9,4 +9,5 @@
     <color name="colorInk">#FF3466</color>
     <color name="colorActorName">#D8D8D8</color>
     <color name="colorStorylineTitle">#ECECEC</color>
+    <color name="movie_item_background">#222232</color>
 </resources>
