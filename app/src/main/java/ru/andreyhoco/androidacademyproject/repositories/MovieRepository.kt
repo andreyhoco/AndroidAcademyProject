@@ -1,9 +1,7 @@
 package ru.andreyhoco.androidacademyproject.repositories
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
 import retrofit2.HttpException
 import ru.andreyhoco.androidacademyproject.BuildConfig
 import ru.andreyhoco.androidacademyproject.persistence.appDatabase.TheMovieAppDatabase
@@ -34,6 +32,12 @@ class MovieRepository(
     private val movieActorCrossRefDao = appDatabase.movieActorCrossRefDao
     private val movieGenreCrossRefDao = appDatabase.movieGenreCrossRefDao
 
+    init {
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        }
+    }
+
     private suspend fun loadTopRatedMovies(pageNum: Int): RequestResult<List<Movie>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -57,68 +61,93 @@ class MovieRepository(
     }
 
     suspend fun getTopRatedMovies(pageNum: Int): Flow<RequestResult<List<Movie>>> {
-        return flow {
+        val localMoviesFlow = moviesDao
+            .getAllMoviesWithActorsAndGenresFlow()
+            .map { moviesWithActorsAndGenres ->
+                val moviesList = moviesWithActorsAndGenres.map { movieWithActorsAndGenres ->
+                    movieWithActorsAndGenres.toMovie()
+                }
+                Timber.tag("FLOW").d("${moviesList.map { it.title }}")
+                RequestResult.Success(moviesList)
+            }.flowOn(Dispatchers.IO)
+
+        val moviesRequestResultFlow = flow {
             val localMovies = moviesDao.getAllMoviesWithActorsAndGenres().map {
                 it.toMovie()
             }
-            emit(RequestResult.Success(localMovies))
 
             val moviesRequestResult = loadTopRatedMovies(pageNum)
             if ((moviesRequestResult is RequestResult.Success)) {
-
                 val remoteMovies = moviesRequestResult.value
 
                 if (remoteMovies.toSet() != localMovies.toSet()) {
                     remoteMovies.forEach {
                         insertMovieInDb(it)
                     }
-
-                    val updatedMoviesList = moviesDao.getAllMoviesWithActorsAndGenres().map {
-                        it.toMovie()
-                    }
-                    emit(RequestResult.Success(updatedMoviesList))
                 }
             } else {
                 emit(moviesRequestResult)
             }
+
         }.flowOn(Dispatchers.IO)
+
+        return merge(localMoviesFlow, moviesRequestResultFlow)
     }
 
     suspend fun getMovieById(id: Long): Flow<RequestResult<Movie>> {
-        return flow {
+        val localMovieFlow = moviesDao
+            .getMovieWithActorsAndGenresFlowByMovieId(id)
+            .map { movieWithActorsAndGenres ->
+                Timber.tag("FLOW").d(movieWithActorsAndGenres.movie.title)
+                RequestResult.Success(movieWithActorsAndGenres.toMovie())
+            }.flowOn(Dispatchers.IO)
+
+        val movieRequestResultFlow = flow {
             val localMovie = moviesDao.getMovieWithActorsAndGenresById(id).toMovie()
-            emit(RequestResult.Success(localMovie))
 
             val movieRequestResult = loadMovieById(id)
             if (movieRequestResult is RequestResult.Success) {
 
                 val remoteMovie = movieRequestResult.value
                 if (remoteMovie != localMovie) {
-
                     insertMovieInDb(remoteMovie)
-                    val updatedMovie = moviesDao.getMovieWithActorsAndGenresById(id).toMovie()
-                    emit(RequestResult.Success(updatedMovie))
                 }
             } else {
                 emit(movieRequestResult)
             }
         }.flowOn(Dispatchers.IO)
+
+        return merge(localMovieFlow, movieRequestResultFlow)
     }
 
-    suspend fun updateMoviesDb(): Boolean {
+    suspend fun updateMovies(): RequestResult<List<Movie>> {
         return withContext(Dispatchers.IO) {
             val moviesRequestResult = loadTopRatedMovies(1)
 
-            if (moviesRequestResult is RequestResult.Success) {
-                moviesDao.deleteAll()
+            when (moviesRequestResult) {
+                is RequestResult.Success -> {
+                    val localMovies = moviesDao.getAllMoviesWithActorsAndGenres().map {
+                        it.toMovie()
+                    }
 
-                moviesRequestResult.value.forEach { movie ->
-                    insertMovieInDb(movie)
+                    val remoteMovies = moviesRequestResult.value
+                    remoteMovies.forEach { movie ->
+                        insertMovieInDb(movie)
+                    }
+
+                    val newMovies = remoteMovies.filterNot { remoteMovie ->
+                        localMovies.map { it.id }.contains(remoteMovie.id)
+                    }
+
+                    if (newMovies.isEmpty()) {
+                        RequestResult.Success(remoteMovies)
+                    } else {
+                        RequestResult.Success(newMovies)
+                    }
                 }
-
-                true
-            } else {
-                false
+                is RequestResult.Failure -> {
+                    moviesRequestResult
+                }
             }
         }
     }
@@ -162,11 +191,11 @@ class MovieRepository(
         actorsDao.insertActors(movie.getActorEntities())
         genresDao.insertGenres(movie.getGenreEntities())
 
-        movie.actors.forEach{ actor ->
+        movie.actors.forEach { actor ->
             movieActorCrossRefDao.insert(MovieActorCrossRef(movie.id, actor.id))
         }
 
-        movie.genres.forEach{ genre ->
+        movie.genres.forEach { genre ->
             movieGenreCrossRefDao.insert(MovieGenreCrossRef(movie.id, genre.id))
         }
     }

@@ -4,8 +4,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import ru.andreyhoco.androidacademyproject.BuildConfig
 import ru.andreyhoco.androidacademyproject.repositories.MovieRepository
 import ru.andreyhoco.ru.andreyhoco.androidacademyproject.ui.UiState
 import ru.andreyhoco.androidacademyproject.ui.uiDataModel.Movie
@@ -22,6 +24,10 @@ class MoviesListViewModel(
 
     init {
         loadMovies()
+
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        }
     }
 
     fun loadMovies() {
@@ -30,11 +36,14 @@ class MoviesListViewModel(
         viewModelScope.launch(Dispatchers.Main) {
             val moviesFlow = repository.getTopRatedMovies(1)
             moviesFlow.collect {
+                Timber.tag("FLOW").d("Collected ${it.toString()}")
                 when (it) {
                     is RequestResult.Success -> {
                         val moviesList = it.value
-                        moviesListFragmentStateMutableLiveData.value =
-                            UiState.DataDisplay(moviesList)
+                        if (moviesList.isNotEmpty()) {
+                            moviesListFragmentStateMutableLiveData.value =
+                                UiState.DataDisplay(moviesList)
+                        }
                     }
                     is RequestResult.Failure -> {
                         handleErrorResult(

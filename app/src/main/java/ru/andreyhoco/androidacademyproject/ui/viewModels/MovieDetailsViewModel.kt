@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import ru.andreyhoco.androidacademyproject.BuildConfig
+import ru.andreyhoco.androidacademyproject.MovieNotifications
 import ru.andreyhoco.androidacademyproject.repositories.MovieRepository
 import ru.andreyhoco.ru.andreyhoco.androidacademyproject.ui.UiState
 import ru.andreyhoco.androidacademyproject.ui.uiDataModel.Movie

@@ -12,7 +12,12 @@ class TheMovieApp : Application(), Configuration.Provider {
 
     override fun getWorkManagerConfiguration(): Configuration {
         val workerFactory = DelegatingWorkerFactory()
-        workerFactory.addFactory(MoviesWorkerFactory(appDi.movieRepository))
+        workerFactory.addFactory(
+            MoviesWorkerFactory(
+                appDi.movieRepository,
+                appDi.movieNotifications
+            )
+        )
 
         return Configuration.Builder()
             .setWorkerFactory(workerFactory)

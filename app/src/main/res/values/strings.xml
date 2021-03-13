@@ -26,4 +26,8 @@
     <string name="network_error">"No internet connection."
         "The displayed data may be out of date."</string>
     <string name="try_again"><u>Try again</u></string>
+    <string name="movie_channel_name">Interesting movies</string>
+    <string name="movie_channel_description">Notifies about new and top rated films.</string>
+    <string name="movie_notification_title">Look at the weekend: %1$s</string>
+    <string name="movie_notification_genre_line">Genres: %1$s</string>
 </resources>

@@ -17,5 +17,11 @@ class WorkRepository {
         TimeUnit.HOURS
     )
         .setConstraints(updateConstraints)
+        .addTag(UNIQUE_UPDATE_TAG)
         .build()
+
+    companion object {
+        const val UNIQUE_UPDATE_TAG = "update_tag"
+        const val PERIODIC_MOVIES_UPDATE = "movies_update"
+    }
 }

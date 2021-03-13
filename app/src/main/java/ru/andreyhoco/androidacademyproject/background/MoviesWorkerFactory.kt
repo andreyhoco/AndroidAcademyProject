@@ -4,9 +4,13 @@ import android.content.Context
 import androidx.work.ListenableWorker
 import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
+import ru.andreyhoco.androidacademyproject.MovieNotifications
 import ru.andreyhoco.androidacademyproject.repositories.MovieRepository
 
-class MoviesWorkerFactory(private val repository: MovieRepository) : WorkerFactory() {
+class MoviesWorkerFactory(
+    private val repository: MovieRepository,
+    private val moviesNotifications: MovieNotifications
+    ) : WorkerFactory() {
 
     override fun createWorker(
         appContext: Context,
@@ -16,8 +20,9 @@ class MoviesWorkerFactory(private val repository: MovieRepository) : WorkerFacto
 
         return when(workerClassName) {
             MoviesWorker::class.java.name -> {
-                MoviesWorker(appContext, workerParameters, repository)
-            } else -> {
+                MoviesWorker(appContext, workerParameters, repository, moviesNotifications)
+            }
+            else -> {
                 null
             }
         }

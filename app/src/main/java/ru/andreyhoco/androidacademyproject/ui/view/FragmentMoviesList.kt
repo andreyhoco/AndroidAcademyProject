@@ -117,7 +117,6 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
     }
 
     private fun onMoviesChanged(movies: List<Movie>, moviesAdapter: MoviesAdapter) {
-        Timber.tag("ADAPTER").d("New dataSet with movies = ${movies[1].title}")
         val movieDiffCallback = MovieDiffCallback(moviesAdapter.movies, movies)
 
         val diff = DiffUtil.calculateDiff(movieDiffCallback)

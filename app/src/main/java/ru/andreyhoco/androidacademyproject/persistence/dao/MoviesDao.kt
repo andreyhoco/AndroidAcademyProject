@@ -2,6 +2,7 @@ package ru.andreyhoco.androidacademyproject.persistence.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 import ru.andreyhoco.androidacademyproject.persistence.entities.MovieWithActorsAndGenres
 import ru.andreyhoco.androidacademyproject.persistence.entities.MovieEntity
 
@@ -15,7 +16,15 @@ interface MoviesDao {
 
     @Transaction
     @Query("SELECT * FROM Movies ORDER BY ratings DESC, title ASC")
+    fun getAllMoviesWithActorsAndGenresFlow(): Flow<List<MovieWithActorsAndGenres>>
+
+    @Transaction
+    @Query("SELECT * FROM Movies ORDER BY ratings DESC, title ASC")
     suspend fun getAllMoviesWithActorsAndGenres(): List<MovieWithActorsAndGenres>
+
+    @Transaction
+    @Query("SELECT * FROM Movies WHERE movie_id == :id")
+    fun getMovieWithActorsAndGenresFlowByMovieId(id: Long): Flow<MovieWithActorsAndGenres>
 
     @Transaction
     @Query("SELECT * FROM Movies WHERE movie_id == :id")
