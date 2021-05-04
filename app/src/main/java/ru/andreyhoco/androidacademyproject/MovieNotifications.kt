@@ -39,7 +39,7 @@ class MovieNotifications(
     fun showMovieNotification(movie: Movie) {
         val contentUri ="ru.andreyhoco://androidacademyproject/movie/${movie.id}".toUri()
 
-        val pendingIntent =PendingIntent.getActivity(
+        val pendingIntent = PendingIntent.getActivity(
             appContext,
             MOVIE_INTENT_CODE,
             Intent(appContext, MainActivity::class.java)

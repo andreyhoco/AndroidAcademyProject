@@ -7,17 +7,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
-import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ru.andreyhoco.TheMovieApp
-import ru.andreyhoco.androidacademyproject.BuildConfig
 import ru.andreyhoco.androidacademyproject.R
-import ru.andreyhoco.androidacademyproject.persistence.entities.MovieActorCrossRef
 import ru.andreyhoco.androidacademyproject.ui.viewModels.MoviesListViewModel
 import ru.andreyhoco.androidacademyproject.ui.viewModels.MoviesListViewModelFactory
 import ru.andreyhoco.androidacademyproject.ui.adapters.MoviesAdapter
@@ -25,7 +23,6 @@ import ru.andreyhoco.androidacademyproject.ui.adapters.OnMovieItemClicked
 import ru.andreyhoco.androidacademyproject.ui.uiDataModel.Movie
 import ru.andreyhoco.ru.andreyhoco.androidacademyproject.ui.UiState
 import ru.andreyhoco.ru.andreyhoco.androidacademyproject.ui.diffUtils.MovieDiffCallback
-import timber.log.Timber
 
 class FragmentMoviesList : Fragment(), OnMovieItemClicked {
     private var loadingView: ProgressBar? = null
@@ -56,7 +53,7 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
 
         initViews(view)
         val moviesAdapter = createAdapter()
-        setUpMovieList(moviesAdapter)
+        setUpMoviesList(moviesAdapter)
 
         moviesListViewModel = ViewModelProvider(
             this,
@@ -79,10 +76,10 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
     }
 
     private fun createAdapter(): MoviesAdapter {
-        return MoviesAdapter(requireContext(), this, emptyList())
+        return MoviesAdapter(requireContext(), this, emptyList(), lifecycleScope)
     }
 
-    private fun setUpMovieList(adapter: MoviesAdapter) {
+    private fun setUpMoviesList(adapter: MoviesAdapter) {
         movieRecyclerView?.adapter = adapter
         val numberOfColumns = resources.getInteger(R.integer.grid_column_count)
         movieRecyclerView?.layoutManager = GridLayoutManager(requireContext(), numberOfColumns)
