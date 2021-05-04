@@ -91,8 +91,8 @@ class MoviesAdapter(
             }
 
             isFavoriteButton.isChecked = false
-//            posterImage.loadImage(movie.poster)
-            posterImage.setImageResource(R.drawable.ic_baseline_movie_24)
+            posterImage.loadImage(movie.poster)
+//            posterImage.setImageResource(R.drawable.ic_baseline_movie_24)
             Timber.tag("OPT text").d("Time to joinToString: ${Calendar.getInstance().timeInMillis - currTime} ms")
         }
     }
