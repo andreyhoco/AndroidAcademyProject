@@ -1,16 +1,13 @@
 package ru.andreyhoco.androidacademyproject.ui.adapters
 
 import android.content.Context
-import android.text.PrecomputedText
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.PrecomputedTextCompat
-import androidx.core.widget.TextViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
@@ -33,31 +30,27 @@ class MoviesAdapter(
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val posterImage = view.findViewById<ImageView>(R.id.movie_item_poster)
-        private val pgText = view.findViewById<AppCompatTextView>(R.id.movie_item_pg)
+//        private val pgText = view.findViewById<AppCompatTextView>(R.id.movie_pg)
         private val titleText = view.findViewById<AppCompatTextView>(R.id.movie_item_title)
         private val genreLine = view.findViewById<AppCompatTextView>(R.id.movie_item_genre)
         private val reviewsLine = view.findViewById<AppCompatTextView>(R.id.movie_item_reviews)
         private val durationLine = view.findViewById<AppCompatTextView>(R.id.movie_item_duration)
-        private val isFavoriteButton = view.findViewById<CheckBox>(R.id.movie_item_is_favorite)
+//        private val isFavoriteButton = view.findViewById<CheckBox>(R.id.movie_item_is_favorite)
 //        private val rating = TODO
 
         fun bind(movie: Movie) {
-            Timber.plant(Timber.DebugTree())
-            val calendar = Calendar.getInstance()
-            val currTime = calendar.timeInMillis
-
             coroutineScope.launch(Dispatchers.IO) {
                 val precomputedTitle = PrecomputedTextCompat.create(
                     movie.title,
                     titleText.textMetricsParamsCompat
                 )
-                val precomputedPgText = PrecomputedTextCompat.create(
-                    context.getString(
-                        R.string.pg_with_placeholder,
-                        movie.minimumAge
-                    ),
-                    pgText.textMetricsParamsCompat
-                )
+//                val precomputedPgText = PrecomputedTextCompat.create(
+//                    context.getString(
+//                        R.string.pg_with_placeholder,
+//                        movie.minimumAge
+//                    ),
+//                    pgText.textMetricsParamsCompat
+//                )
                 val precomputedGenres = PrecomputedTextCompat.create(
                     movie.genres.joinToString { it.name },
                     genreLine.textMetricsParamsCompat
@@ -83,17 +76,16 @@ class MoviesAdapter(
 
                 withContext(Dispatchers.Main) {
                     titleText.setPrecomputedText(precomputedTitle)
-                    pgText.setPrecomputedText(precomputedPgText)
+//                    pgText.setPrecomputedText(precomputedPgText)
                     genreLine.setPrecomputedText(precomputedGenres)
                     durationLine.setPrecomputedText(precomputedDuration)
                     reviewsLine.setPrecomputedText(precomputedReviews)
                 }
             }
 
-            isFavoriteButton.isChecked = false
+//            isFavoriteButton.isChecked = false
             posterImage.loadImage(movie.poster)
 //            posterImage.setImageResource(R.drawable.ic_baseline_movie_24)
-            Timber.tag("OPT text").d("Time to joinToString: ${Calendar.getInstance().timeInMillis - currTime} ms")
         }
     }
 
@@ -101,7 +93,14 @@ class MoviesAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(context)
-        return ViewHolder(inflater.inflate(R.layout.movie_item, parent, false))
+        Timber.plant(Timber.DebugTree())
+        val calendar = Calendar.getInstance()
+        val currTime = calendar.timeInMillis
+
+        val inflatedViewHolder = ViewHolder(inflater.inflate(R.layout.movie_item, parent, false))
+
+        Timber.tag("OPT text").d("Time to inflate ViewHolder: ${Calendar.getInstance().timeInMillis - currTime} ms")
+        return inflatedViewHolder
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -111,7 +110,9 @@ class MoviesAdapter(
         }
     }
 
-
+    override fun onFailedToRecycleView(holder: ViewHolder): Boolean {
+        return true
+    }
 }
 
 interface OnMovieItemClicked {

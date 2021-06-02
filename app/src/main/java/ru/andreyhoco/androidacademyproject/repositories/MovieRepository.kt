@@ -20,9 +20,8 @@ class MovieRepository(
     private val tmdbService: TmdbApiService,
     appDatabase: TheMovieAppDatabase
 ) {
-
     private val baseImageLoadUrl: String = BuildConfig.IMAGE_BASE_URL
-    private val posterSize: String = "w185"
+    private val posterSize: String = "w154"
     private val backdropSize: String = "w780"
     private val profileSize: String = "w185"
 
@@ -67,7 +66,6 @@ class MovieRepository(
                 val moviesList = moviesWithActorsAndGenres.map { movieWithActorsAndGenres ->
                     movieWithActorsAndGenres.toMovie()
                 }
-                Timber.tag("FLOW").d("${moviesList.map { it.title }}")
                 RequestResult.Success(moviesList)
             }.flowOn(Dispatchers.IO)
 
@@ -98,7 +96,6 @@ class MovieRepository(
         val localMovieFlow = moviesDao
             .getMovieWithActorsAndGenresFlowByMovieId(id)
             .map { movieWithActorsAndGenres ->
-                Timber.tag("FLOW").d(movieWithActorsAndGenres.movie.title)
                 RequestResult.Success(movieWithActorsAndGenres.toMovie())
             }.flowOn(Dispatchers.IO)
 
@@ -204,7 +201,11 @@ class MovieRepository(
         return Actor(
             id = this.id,
             name = this.originalName,
-            picture = baseImageLoadUrl + profileSize + this.profilePath
+            picture = if (this.profilePath == null) {
+                ""
+            } else {
+                baseImageLoadUrl + profileSize + this.profilePath
+            }
         )
     }
 

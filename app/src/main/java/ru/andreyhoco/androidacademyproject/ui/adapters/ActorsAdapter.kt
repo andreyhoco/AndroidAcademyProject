@@ -14,7 +14,7 @@ import ru.andreyhoco.androidacademyproject.ui.uiDataModel.Actor
 
 class ActorsAdapter(
     private val context: Context,
-    private val actors: List<Actor>
+    var actors: List<Actor>
 ) : RecyclerView.Adapter<ActorsAdapter.ViewHolder>() {
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {

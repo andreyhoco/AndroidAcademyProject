@@ -50,10 +50,11 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val context = requireContext()
 
         initViews(view)
-        val moviesAdapter = createAdapter()
-        setUpMoviesList(moviesAdapter)
+        val moviesAdapter = createAdapter(context)
+        setUpMoviesList(moviesAdapter, context)
 
         moviesListViewModel = ViewModelProvider(
             this,
@@ -61,7 +62,13 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
                 (requireActivity().application as TheMovieApp).appDi.movieRepository
             )
         ).get(MoviesListViewModel::class.java)
-        setUpViewModel(moviesAdapter)
+
+        if (savedInstanceState == null) {
+            setUpViewModel(moviesAdapter = moviesAdapter, isFragmentRotated = false, context)
+        } else {
+            setUpViewModel(moviesAdapter = moviesAdapter, isFragmentRotated = true, context)
+        }
+
     }
 
     override fun onDetach() {
@@ -75,21 +82,26 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
         fragmentListener?.onListItemClicked(movieId)
     }
 
-    private fun createAdapter(): MoviesAdapter {
-        return MoviesAdapter(requireContext(), this, emptyList(), lifecycleScope)
+    private fun createAdapter(context: Context): MoviesAdapter {
+        return MoviesAdapter(context, this, emptyList(), lifecycleScope)
     }
 
-    private fun setUpMoviesList(adapter: MoviesAdapter) {
+    private fun setUpMoviesList(adapter: MoviesAdapter, context: Context) {
         movieRecyclerView?.adapter = adapter
         val numberOfColumns = resources.getInteger(R.integer.grid_column_count)
-        movieRecyclerView?.layoutManager = GridLayoutManager(requireContext(), numberOfColumns)
+        movieRecyclerView?.layoutManager = GridLayoutManager(context, numberOfColumns)
     }
 
     private fun setLoading(loading: Boolean) {
         loadingView?.isVisible = loading
     }
 
-    private fun handleUiState(state: UiState<List<Movie>>, moviesAdapter: MoviesAdapter) {
+    private fun handleUiState(
+        state: UiState<List<Movie>>,
+        moviesAdapter: MoviesAdapter,
+        isFragmentRotated: Boolean,
+        context: Context
+    ) {
         when (state) {
             is UiState.Loading -> {
                 setLoading(true)
@@ -108,7 +120,9 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
                         resources.getString(R.string.network_error)
                     }
                 }
-                Toast.makeText(requireContext(), errorDescription, Toast.LENGTH_LONG).show()
+                if (!isFragmentRotated) {
+                    Toast.makeText(context, errorDescription, Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
@@ -119,7 +133,6 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
         val diff = DiffUtil.calculateDiff(movieDiffCallback)
         diff.dispatchUpdatesTo(moviesAdapter)
         moviesAdapter.movies = movies
-
     }
 
     private fun initViews(view: View) {
@@ -132,11 +145,16 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
         loadingView = null
     }
 
-    private fun setUpViewModel(moviesAdapter: MoviesAdapter) {
+    private fun setUpViewModel(
+        moviesAdapter: MoviesAdapter,
+        isFragmentRotated: Boolean,
+        context: Context
+    ) {
+        moviesListViewModel?.loadMovies()
         moviesListViewModel?.fragmentState?.observe(
             this@FragmentMoviesList.viewLifecycleOwner
         ) { state ->
-            handleUiState(state, moviesAdapter)
+            handleUiState(state, moviesAdapter, isFragmentRotated, context)
         }
     }
 }

@@ -23,8 +23,6 @@ class MoviesListViewModel(
     val fragmentState = moviesListFragmentStateMutableLiveData
 
     init {
-        loadMovies()
-
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
@@ -36,7 +34,6 @@ class MoviesListViewModel(
         viewModelScope.launch(Dispatchers.Main) {
             val moviesFlow = repository.getTopRatedMovies(1)
             moviesFlow.collect {
-                Timber.tag("FLOW").d("Collected ${it.toString()}")
                 when (it) {
                     is RequestResult.Success -> {
                         val moviesList = it.value

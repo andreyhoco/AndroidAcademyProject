@@ -1,5 +1,6 @@
 package ru.andreyhoco.androidacademyproject.ui.view
 
+import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -11,6 +12,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -23,6 +25,8 @@ import ru.andreyhoco.androidacademyproject.ui.adapters.ActorsAdapter
 import ru.andreyhoco.androidacademyproject.ui.uiDataModel.Actor
 import ru.andreyhoco.androidacademyproject.ui.uiDataModel.Movie
 import ru.andreyhoco.ru.andreyhoco.androidacademyproject.ui.UiState
+import ru.andreyhoco.ru.andreyhoco.androidacademyproject.ui.diffUtils.ActorDiffCallback
+import timber.log.Timber
 
 class FragmentMovieDetails : Fragment() {
     private var backButton: TextView? = null
@@ -45,6 +49,8 @@ class FragmentMovieDetails : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        Timber.plant(Timber.DebugTree())
+
         return inflater.inflate(R.layout.fragment_movie_details, container, false)
     }
 
@@ -53,27 +59,31 @@ class FragmentMovieDetails : Fragment() {
 
         val movieId = this.arguments?.getLong("movie") ?:
             throw IllegalArgumentException("Arguments missing id")
+        val context = requireContext()
 
         initViews(view)
         setUpListeners()
+        val actorsAdapter = createActorsAdapter(context)
+        setupActorList(actorsAdapter, context)
 
         movieDetailsViewModel = ViewModelProvider(
             this,
             MovieDetailsViewModelFactory((requireActivity().application as TheMovieApp).appDi.movieRepository)
         ).get(MovieDetailsViewModel::class.java)
 
-        setUpViewModel(movieId)
+        if (savedInstanceState == null) {
+            setUpViewModel(movieId =  movieId, isFragmentRotated = false, actorsAdapter, context)
+        } else {
+            setUpViewModel(movieId =  movieId, isFragmentRotated = true, actorsAdapter, context)
+        }
     }
 
     override fun onDetach() {
         super.onDetach()
-
         clearViews()
     }
 
-    private fun showData(movie: Movie) {
-        val context = requireContext()
-
+    private fun showData(movie: Movie, actorsAdapter: ActorsAdapter, context: Context) {
         backdropImage?.let {
             Glide.with(it)
                 .load(movie.backdrop)
@@ -96,18 +106,20 @@ class FragmentMovieDetails : Fragment() {
         if (movie.actors.isEmpty()) {
             hideCast()
         } else {
+            onActorsListChanged(actorsAdapter, movie.actors)
             showCast()
-            setupActorList(movie.actors)
         }
     }
 
-    private fun setupActorList(actors: List<Actor>) {
-        castRecyclerView?.adapter = ActorsAdapter(requireContext(), actors)
+    private fun setupActorList(adapter: ActorsAdapter, context: Context) {
+        castRecyclerView?.adapter = adapter
         castRecyclerView?.layoutManager = LinearLayoutManager(
-            requireContext(),
+            context,
             RecyclerView.HORIZONTAL,
             false
         )
+
+        Timber.tag("ACTORS").d("Setup actors list")
     }
 
     private fun showCast() {
@@ -125,7 +137,20 @@ class FragmentMovieDetails : Fragment() {
         backgroundPlaceholder?.isVisible = loading
     }
 
-    private fun handleUiState(state: UiState<Movie>) {
+    private fun onActorsListChanged(actorsAdapter: ActorsAdapter, newActors: List<Actor>) {
+        val actorsDiffCallback = ActorDiffCallback(actorsAdapter.actors, newActors)
+
+        val actorsDiff = DiffUtil.calculateDiff(actorsDiffCallback)
+        actorsDiff.dispatchUpdatesTo(actorsAdapter)
+        actorsAdapter.actors = newActors
+    }
+
+    private fun handleUiState(
+        state: UiState<Movie>,
+        isFragmentRotated: Boolean,
+        actorsAdapter: ActorsAdapter,
+        context: Context
+    ) {
         when (state) {
             is UiState.Loading -> {
                 setLoading(true)
@@ -133,7 +158,7 @@ class FragmentMovieDetails : Fragment() {
             is UiState.DataDisplay -> {
                 val movie = state.value
                 setLoading(false)
-                showData(movie)
+                showData(movie, actorsAdapter, context)
             }
             is UiState.DisplayError -> {
                 val errorDescription = when (state) {
@@ -144,9 +169,15 @@ class FragmentMovieDetails : Fragment() {
                         resources.getString(R.string.network_error)
                     }
                 }
-                Toast.makeText(requireContext(), errorDescription, Toast.LENGTH_LONG).show()
+                if (!isFragmentRotated) {
+                    Toast.makeText(context, errorDescription, Toast.LENGTH_LONG).show()
+                }
             }
         }
+    }
+
+    private fun createActorsAdapter(context: Context): ActorsAdapter {
+        return ActorsAdapter(context, emptyList())
     }
 
     private fun initViews(view: View) {
@@ -170,12 +201,18 @@ class FragmentMovieDetails : Fragment() {
         }
     }
 
-    private fun setUpViewModel(movieId: Long) {
+    private fun setUpViewModel(
+        movieId: Long,
+        isFragmentRotated: Boolean,
+        actorsAdapter: ActorsAdapter,
+        context: Context
+    ) {
         movieDetailsViewModel?.loadMovie(movieId)
         movieDetailsViewModel?.fragmentState?.observe(
-            this@FragmentMovieDetails.viewLifecycleOwner,
-            this::handleUiState
-        )
+            this@FragmentMovieDetails.viewLifecycleOwner
+        ) { state ->
+            handleUiState(state, isFragmentRotated, actorsAdapter, context)
+        }
     }
 
     private fun clearViews() {
