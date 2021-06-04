@@ -19,6 +19,8 @@ class MainActivity : AppCompatActivity(), FragmentMoviesListListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        Timber.plant(Timber.DebugTree())
+
         if (savedInstanceState == null) {
             val fragmentMoviesList = FragmentMoviesList()
             openFragment(fragmentMoviesList, false)
@@ -26,11 +28,8 @@ class MainActivity : AppCompatActivity(), FragmentMoviesListListener {
             if (intent != null) {
                 handleOpenMovieIntent(intent)
             }
+            setupWorks(applicationContext)
         }
-
-        Timber.plant(Timber.DebugTree())
-
-       setupWorks(applicationContext)
     }
 
     override fun onListItemClicked(movieId: Long) {
@@ -46,13 +45,16 @@ class MainActivity : AppCompatActivity(), FragmentMoviesListListener {
     }
 
     private fun setupWorks(appContext: Context) {
+        Timber.tag("WORK_BUG_FIX").d("Setup unique work")
+
         val workRepository = WorkRepository()
         val workManager = WorkManager.getInstance(appContext)
 
-        workManager.cancelAllWorkByTag(WorkRepository.UNIQUE_UPDATE_TAG)
+        workManager.cancelUniqueWork(WorkRepository.PERIODIC_MOVIES_UPDATE)
+        Timber.tag("WORK_BUG_FIX").d("Info ${workManager.getWorkInfosForUniqueWork(WorkRepository.PERIODIC_MOVIES_UPDATE)}")
         workManager.enqueueUniquePeriodicWork(
             WorkRepository.PERIODIC_MOVIES_UPDATE,
-            ExistingPeriodicWorkPolicy.KEEP,
+            ExistingPeriodicWorkPolicy.REPLACE,
             workRepository.periodicMoviesUpdateRequest
         )
     }

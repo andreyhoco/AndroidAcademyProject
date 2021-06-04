@@ -7,14 +7,15 @@ import java.util.concurrent.TimeUnit
 
 class WorkRepository {
     private val updateConstraints = Constraints.Builder()
-        .setRequiredNetworkType(NetworkType.UNMETERED)
+        .setRequiredNetworkType(NetworkType.METERED)
         .setRequiresCharging(true)
         .build()
+//        .setRequiredNetworkType(NetworkType.UNMETERED)
 
     val periodicMoviesUpdateRequest = PeriodicWorkRequest.Builder(
         MoviesWorker::class.java,
-        8,
-        TimeUnit.HOURS
+        17,
+        TimeUnit.MINUTES
     )
         .setConstraints(updateConstraints)
         .addTag(UNIQUE_UPDATE_TAG)

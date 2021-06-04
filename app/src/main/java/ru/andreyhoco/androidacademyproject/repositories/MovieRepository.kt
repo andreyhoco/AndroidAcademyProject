@@ -93,6 +93,7 @@ class MovieRepository(
     }
 
     suspend fun getMovieById(id: Long): Flow<RequestResult<Movie>> {
+
         val localMovieFlow = moviesDao
             .getMovieWithActorsAndGenresFlowByMovieId(id)
             .map { movieWithActorsAndGenres ->
@@ -123,8 +124,8 @@ class MovieRepository(
 
             when (moviesRequestResult) {
                 is RequestResult.Success -> {
-                    val localMovies = moviesDao.getAllMoviesWithActorsAndGenres().map {
-                        it.toMovie()
+                    val localMoviesIds = moviesDao.getAllMoviesWithActorsAndGenres().map {
+                        it.toMovie().id
                     }
 
                     val remoteMovies = moviesRequestResult.value
@@ -133,7 +134,7 @@ class MovieRepository(
                     }
 
                     val newMovies = remoteMovies.filterNot { remoteMovie ->
-                        localMovies.map { it.id }.contains(remoteMovie.id)
+                        localMoviesIds.contains(remoteMovie.id)
                     }
 
                     if (newMovies.isEmpty()) {
