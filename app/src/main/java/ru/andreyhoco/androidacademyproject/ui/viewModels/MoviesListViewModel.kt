@@ -1,12 +1,8 @@
 package ru.andreyhoco.androidacademyproject.ui.viewModels
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.*
 import ru.andreyhoco.androidacademyproject.BuildConfig
 import ru.andreyhoco.androidacademyproject.repositories.MovieRepository
 import ru.andreyhoco.ru.andreyhoco.androidacademyproject.ui.UiState
@@ -18,9 +14,18 @@ class MoviesListViewModel(
     private val repository: MovieRepository
 ) : ViewModel() {
 
-    private val moviesListFragmentStateMutableLiveData = MutableLiveData<UiState<List<Movie>>>()
-
-    val fragmentState = moviesListFragmentStateMutableLiveData
+    val fragmentState: StateFlow<UiState<List<Movie>>> = flow {
+        repository.getTopRatedMovies(1).collect { requestResult ->
+            when(requestResult) {
+                is RequestResult.Success -> {
+                    emit(UiState.DataDisplay(requestResult.value))
+                }
+                is RequestResult.Failure -> {
+                    emit(handleErrorResult(requestResult))
+                }
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, UiState.Loading())
 
     init {
         if (BuildConfig.DEBUG) {
@@ -28,55 +33,23 @@ class MoviesListViewModel(
         }
     }
 
-    fun loadMovies() {
-        moviesListFragmentStateMutableLiveData.value = UiState.Loading()
-
-        viewModelScope.launch(Dispatchers.Main) {
-            val moviesFlow = repository.getTopRatedMovies(1)
-            moviesFlow.collect {
-                when (it) {
-                    is RequestResult.Success -> {
-                        val moviesList = it.value
-                        if (moviesList.isNotEmpty()) {
-                            moviesListFragmentStateMutableLiveData.value =
-                                UiState.DataDisplay(moviesList)
-                        }
-                    }
-                    is RequestResult.Failure -> {
-                        handleErrorResult(
-                            it,
-                            moviesListFragmentStateMutableLiveData
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    private fun <T> handleErrorResult(
-        result: RequestResult.Failure,
-        uiState: MutableLiveData<UiState<T>>
-    ) {
+    private fun handleErrorResult(result: RequestResult.Failure): UiState.DisplayError {
         when (result) {
             is RequestResult.Failure.HttpError -> {
                 val statusCode = result.exception.code()
+                Timber.w("Http error: $statusCode, ${result.exception.message}")
                 when (statusCode) {
                     in 500..599 -> {
-                        uiState.value = UiState.DisplayError.ServerError()
+                        return UiState.DisplayError.ServerError()
                     }
                     else -> {
-                        uiState.value = UiState.DisplayError.NetworkError()
+                        return UiState.DisplayError.NetworkError()
                     }
                 }
-                Timber.w(
-                    "Http error: $statusCode, ${result.exception.message()}"
-                )
             }
             is RequestResult.Failure.Error -> {
-                uiState.value = UiState.DisplayError.NetworkError()
-                Timber.w(
-                    "${MovieDetailsViewModel::class.java.name}: ${result.exception}"
-                )
+                Timber.w("${MovieDetailsViewModel::class.java.name}: ${result.exception}")
+                return UiState.DisplayError.UnexpectedError()
             }
         }
     }

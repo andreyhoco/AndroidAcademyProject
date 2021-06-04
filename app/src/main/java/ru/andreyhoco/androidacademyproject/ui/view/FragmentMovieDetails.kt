@@ -11,12 +11,16 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import ru.andreyhoco.TheMovieApp
 import ru.andreyhoco.androidacademyproject.R
 import ru.andreyhoco.androidacademyproject.ui.viewModels.MovieDetailsViewModel
@@ -42,8 +46,6 @@ class FragmentMovieDetails : Fragment() {
     private var loadingView: ProgressBar? = null
     private var backgroundPlaceholder: View? = null
 
-    private var movieDetailsViewModel: MovieDetailsViewModel? = null
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -66,16 +68,16 @@ class FragmentMovieDetails : Fragment() {
         val actorsAdapter = createActorsAdapter(context)
         setupActorList(actorsAdapter, context)
 
-        movieDetailsViewModel = ViewModelProvider(
+        val movieDetailsViewModel: MovieDetailsViewModel = ViewModelProvider(
             this,
-            MovieDetailsViewModelFactory((requireActivity().application as TheMovieApp).appDi.movieRepository)
+            MovieDetailsViewModelFactory(
+                (requireActivity().application as TheMovieApp)
+                .appDi
+                .movieRepository
+            )
         ).get(MovieDetailsViewModel::class.java)
 
-        if (savedInstanceState == null) {
-            setUpViewModel(movieId =  movieId, isFragmentRotated = false, actorsAdapter, context)
-        } else {
-            setUpViewModel(movieId =  movieId, isFragmentRotated = true, actorsAdapter, context)
-        }
+        setUpViewModel(movieDetailsViewModel, movieId =  movieId, actorsAdapter, context)
     }
 
     override fun onDetach() {
@@ -147,7 +149,6 @@ class FragmentMovieDetails : Fragment() {
 
     private fun handleUiState(
         state: UiState<Movie>,
-        isFragmentRotated: Boolean,
         actorsAdapter: ActorsAdapter,
         context: Context
     ) {
@@ -165,13 +166,14 @@ class FragmentMovieDetails : Fragment() {
                     is UiState.DisplayError.ServerError -> {
                         resources.getString(R.string.server_error)
                     }
-                    else -> {
+                    is UiState.DisplayError.NetworkError -> {
                         resources.getString(R.string.network_error)
                     }
+                    else -> {
+                        resources.getString(R.string.unexpected_error)
+                    }
                 }
-                if (!isFragmentRotated) {
-                    Toast.makeText(context, errorDescription, Toast.LENGTH_LONG).show()
-                }
+                Toast.makeText(context, errorDescription, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -202,16 +204,18 @@ class FragmentMovieDetails : Fragment() {
     }
 
     private fun setUpViewModel(
+        viewModel: MovieDetailsViewModel,
         movieId: Long,
-        isFragmentRotated: Boolean,
         actorsAdapter: ActorsAdapter,
         context: Context
     ) {
-        movieDetailsViewModel?.loadMovie(movieId)
-        movieDetailsViewModel?.fragmentState?.observe(
-            this@FragmentMovieDetails.viewLifecycleOwner
-        ) { state ->
-            handleUiState(state, isFragmentRotated, actorsAdapter, context)
+        viewModel.loadMovie(movieId)
+        lifecycleScope.launch {
+            viewModel.fragmentState
+                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                .collect { state ->
+                    handleUiState(state, actorsAdapter, context)
+                }
         }
     }
 

@@ -4,6 +4,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import ru.andreyhoco.androidacademyproject.BuildConfig
@@ -17,54 +20,43 @@ import timber.log.Timber
 class MovieDetailsViewModel(
     private val repository: MovieRepository
 ) : ViewModel() {
-    private val movieDetailsStateMutableLiveData = MutableLiveData<UiState<Movie>>()
-    val fragmentState = movieDetailsStateMutableLiveData
+    private val _fragmentState = MutableStateFlow<UiState<Movie>>(UiState.Loading())
+    val fragmentState: StateFlow<UiState<Movie>> = _fragmentState.asStateFlow()
 
     fun loadMovie(movieId: Long) {
-        movieDetailsStateMutableLiveData.postValue(UiState.Loading())
         viewModelScope.launch(Dispatchers.Main) {
             val movieDataFlow = repository.getMovieById(movieId)
             movieDataFlow.collect { movieRequestResult ->
                 when (movieRequestResult) {
                     is RequestResult.Success -> {
                         val movie = movieRequestResult.value
-                        movieDetailsStateMutableLiveData.value = UiState.DataDisplay(movie)
+                        _fragmentState.value = UiState.DataDisplay(movie)
                     }
                     is RequestResult.Failure -> {
-                        handleErrorResult(
-                            movieRequestResult,
-                            movieDetailsStateMutableLiveData
-                        )
+                        _fragmentState.value = handleErrorResult(movieRequestResult)
                     }
                 }
             }
         }
     }
 
-    private fun <T> handleErrorResult(
-        result: RequestResult.Failure,
-        uiState: MutableLiveData<UiState<T>>
-    ) {
+    private fun handleErrorResult(result: RequestResult.Failure): UiState.DisplayError {
         when (result) {
             is RequestResult.Failure.HttpError -> {
                 val statusCode = result.exception.code()
+                Timber.w("Http error: $statusCode, ${result.exception.message}")
                 when (statusCode) {
                     in 500..599 -> {
-                        uiState.value = UiState.DisplayError.ServerError()
+                        return UiState.DisplayError.ServerError()
                     }
                     else -> {
-                        uiState.value = UiState.DisplayError.NetworkError()
+                        return UiState.DisplayError.NetworkError()
                     }
                 }
-                Timber.w(
-                    "Http error: $statusCode, ${result.exception.message()}"
-                )
             }
             is RequestResult.Failure.Error -> {
-                uiState.value = UiState.DisplayError.NetworkError()
-                Timber.w(
-                    "${MovieDetailsViewModel::class.java.name}: ${result.exception}"
-                )
+                Timber.w("${MovieDetailsViewModel::class.java.name}: ${result.exception}")
+                return UiState.DisplayError.UnexpectedError()
             }
         }
     }

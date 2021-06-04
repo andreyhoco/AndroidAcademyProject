@@ -13,5 +13,7 @@ sealed class UiState<out T> {
         class NetworkError: DisplayError()
 
         class ServerError: DisplayError()
+
+        class UnexpectedError: DisplayError()
     }
 }

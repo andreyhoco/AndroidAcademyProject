@@ -25,6 +25,8 @@
         "The displayed data may be out of date."</string>
     <string name="network_error">"No internet connection."
         "The displayed data may be out of date."</string>
+    <string name="unexpected_error">Something strange has happened,"
+        " we trying to fix it</string>
     <string name="try_again"><u>Try again</u></string>
     <string name="movie_channel_name">Interesting movies</string>
     <string name="movie_channel_description">Notifies about new and top rated films.</string>
