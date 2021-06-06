@@ -1,6 +1,7 @@
 package ru.andreyhoco.androidacademyproject.network.responses
 
 import kotlinx.serialization.*
+import ru.andreyhoco.ru.andreyhoco.androidacademyproject.network.responses.GenreResponse
 
 @Serializable
 data class DetailedMovieResponse (
@@ -16,6 +17,9 @@ data class DetailedMovieResponse (
     @SerialName("id")
     val movieId: Long,
 
+    @SerialName("release_date")
+    val releaseDate: String,
+
     @SerialName("title")
     val title: String,
 
@@ -29,17 +33,8 @@ data class DetailedMovieResponse (
     val runtime: Long,
 
     @SerialName("vote_average")
-    val voteAverage: Double,
+    val numberOfRatings: Int,
 
     @SerialName("vote_count")
-    val voteCount: Long
-)
-
-@Serializable
-data class GenreResponse (
-    @SerialName("id")
-    val genreId: Long,
-
-    @SerialName("name")
-    val name: String
+    val ratings: Float
 )

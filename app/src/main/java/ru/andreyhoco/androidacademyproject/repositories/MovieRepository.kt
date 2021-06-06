@@ -13,7 +13,6 @@ import ru.andreyhoco.androidacademyproject.network.responses.ActorResponse
 import ru.andreyhoco.androidacademyproject.network.responses.DetailedMovieResponse
 import ru.andreyhoco.androidacademyproject.network.responses.MovieIdResponse
 import ru.andreyhoco.androidacademyproject.persistence.entities.*
-import timber.log.Timber
 
 class MovieRepository(
     private val tmdbService: TmdbApiService,
@@ -144,8 +143,8 @@ class MovieRepository(
             overview = this.overview,
             poster = baseImageLoadUrl + posterSize + this.posterPath,
             backdrop = baseImageLoadUrl + backdropSize + this.backdropPath,
-            ratings = this.voteAverage.toFloat(),
-            numberOfRatings = this.voteCount.toInt(),
+            ratings = this.ratings,
+            numberOfRatings = this.numberOfRatings,
             minimumAge = if (this.adult) 16 else 13,
             runtime = this.runtime.toInt(),
             genres = this.genres.map {
