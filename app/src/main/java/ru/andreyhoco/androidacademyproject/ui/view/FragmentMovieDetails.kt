@@ -20,7 +20,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import ru.andreyhoco.TheMovieApp
@@ -156,7 +155,7 @@ class FragmentMovieDetails : Fragment() {
             is UiState.Loading -> {
                 setLoading(true)
             }
-            is UiState.DataDisplay -> {
+            is UiState.DisplayData -> {
                 setLoading(false)
             }
             is UiState.DisplayError -> {
@@ -167,9 +166,6 @@ class FragmentMovieDetails : Fragment() {
                     }
                     is UiState.DisplayError.NetworkError -> {
                         resources.getString(R.string.network_error)
-                    }
-                    else -> {
-                        resources.getString(R.string.unexpected_error)
                     }
                 }
                 Toast.makeText(context, errorDescription, Toast.LENGTH_LONG).show()

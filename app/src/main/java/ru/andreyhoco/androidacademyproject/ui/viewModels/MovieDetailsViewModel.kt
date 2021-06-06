@@ -46,7 +46,7 @@ class MovieDetailsViewModel(
             val requestResult = repository.loadMovieById(movieId)
             when (requestResult) {
                 is RequestResult.Success -> {
-                    _fragmentState.value = UiState.DataDisplay()
+                    _fragmentState.value = UiState.DisplayData()
                 }
                 is RequestResult.Failure -> {
                     _fragmentState.value = handleErrorResult(requestResult)
@@ -65,7 +65,7 @@ class MovieDetailsViewModel(
                     movieId = newMovieId
                     redirectMovieJob?.cancel()
                     redirectMovieJob = redirectMovieFlowTo(this, newMovieId)
-                    _fragmentState.value = UiState.DataDisplay()
+                    _fragmentState.value = UiState.DisplayData()
                 }
                 is RequestResult.Failure -> {
                     _fragmentState.value = handleErrorResult(requestResult)
@@ -75,23 +75,14 @@ class MovieDetailsViewModel(
     }
 
     private fun handleErrorResult(result: RequestResult.Failure): UiState.DisplayError {
-        when (result) {
-            is RequestResult.Failure.HttpError -> {
-                val statusCode = result.exception.code()
-                Timber.w("Http error: $statusCode, ${result.exception.message}")
-                when (statusCode) {
-                    in 500..599 -> {
-                        return UiState.DisplayError.ServerError()
-                    }
-                    else -> {
-                        return UiState.DisplayError.NetworkError()
-                    }
-                }
-            }
-            is RequestResult.Failure.Error -> {
-                Timber.w("${MovieDetailsViewModel::class.java.name}: ${result.exception}")
-                return UiState.DisplayError.UnexpectedError()
-            }
+        if ((result is RequestResult.Failure.HttpError) && (result.exception.code() in 500..599)) {
+            Timber.tag("NETWORK_ERROR")
+                .w("Http error: ${result.exception.message}")
+            return UiState.DisplayError.ServerError()
+        } else {
+            Timber.tag("NETWORK_ERROR")
+                .w("${MovieDetailsViewModel::class.java.name}: $result")
+            return UiState.DisplayError.NetworkError()
         }
     }
 }

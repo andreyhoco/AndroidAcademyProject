@@ -16,8 +16,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -104,7 +102,7 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
             is UiState.Loading -> {
                 setLoading(true)
             }
-            is UiState.DataDisplay -> {
+            is UiState.DisplayData -> {
                 setLoading(false)
             }
             is UiState.DisplayError -> {
@@ -115,9 +113,6 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
                     }
                     is UiState.DisplayError.NetworkError -> {
                         resources.getString(R.string.network_error)
-                    }
-                    else -> {
-                        resources.getString(R.string.unexpected_error)
                     }
                 }
                 Toast.makeText(context, errorDescription, Toast.LENGTH_LONG).show()
