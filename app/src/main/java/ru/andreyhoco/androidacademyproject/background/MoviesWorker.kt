@@ -2,11 +2,12 @@ package ru.andreyhoco.androidacademyproject.background
 
 import android.content.Context
 import androidx.work.CoroutineWorker
-import androidx.work.Worker
 import androidx.work.WorkerParameters
+import kotlinx.coroutines.flow.take
 import ru.andreyhoco.androidacademyproject.MovieNotifications
 import ru.andreyhoco.androidacademyproject.repositories.MovieRepository
 import ru.andreyhoco.androidacademyproject.repositories.RequestResult
+import ru.andreyhoco.androidacademyproject.ui.uiDataModel.Movie
 import timber.log.Timber
 import java.util.concurrent.CancellationException
 
@@ -18,16 +19,13 @@ class MoviesWorker(
 ) : CoroutineWorker(appContext, params) {
 
     override suspend fun doWork(): Result {
-        Timber.plant(Timber.DebugTree())
         try {
-            val updateResult = repository.updateMovies()
+            val updateResult = repository.loadTopRatedMovies(1)
 
             when (updateResult) {
                 is RequestResult.Success -> {
-                    val randomMovie = updateResult.value.random()
-
-                    Timber.tag("MOVIES_DB_UPDATE_WORK").d("Update was successful, movie: ${randomMovie.title}")
-                    movieNotifications.showMovieNotification(randomMovie)
+                    val movies: List<Movie> 
+                    movieNotifications.showMovieNotification(repository.getRandomTopRatedMovie())
                     return Result.success()
                 }
                 is RequestResult.Failure -> {

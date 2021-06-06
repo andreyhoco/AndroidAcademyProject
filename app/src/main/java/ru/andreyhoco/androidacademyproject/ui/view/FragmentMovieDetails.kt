@@ -21,6 +21,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import ru.andreyhoco.TheMovieApp
 import ru.andreyhoco.androidacademyproject.R
 import ru.andreyhoco.androidacademyproject.ui.viewModels.MovieDetailsViewModel
@@ -51,8 +53,6 @@ class FragmentMovieDetails : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        Timber.plant(Timber.DebugTree())
-
         return inflater.inflate(R.layout.fragment_movie_details, container, false)
     }
 
@@ -72,12 +72,13 @@ class FragmentMovieDetails : Fragment() {
             this,
             MovieDetailsViewModelFactory(
                 (requireActivity().application as TheMovieApp)
-                .appDi
-                .movieRepository
+                    .appDi
+                    .movieRepository,
+                movieId
             )
         ).get(MovieDetailsViewModel::class.java)
 
-        setUpViewModel(movieDetailsViewModel, movieId =  movieId, actorsAdapter, context)
+        setUpViewModel(movieDetailsViewModel, actorsAdapter, context)
     }
 
     override fun onDetach() {
@@ -148,8 +149,7 @@ class FragmentMovieDetails : Fragment() {
     }
 
     private fun handleUiState(
-        state: UiState<Movie>,
-        actorsAdapter: ActorsAdapter,
+        state: UiState,
         context: Context
     ) {
         when (state) {
@@ -157,11 +157,10 @@ class FragmentMovieDetails : Fragment() {
                 setLoading(true)
             }
             is UiState.DataDisplay -> {
-                val movie = state.value
                 setLoading(false)
-                showData(movie, actorsAdapter, context)
             }
             is UiState.DisplayError -> {
+                setLoading(false)
                 val errorDescription = when (state) {
                     is UiState.DisplayError.ServerError -> {
                         resources.getString(R.string.server_error)
@@ -205,17 +204,21 @@ class FragmentMovieDetails : Fragment() {
 
     private fun setUpViewModel(
         viewModel: MovieDetailsViewModel,
-        movieId: Long,
         actorsAdapter: ActorsAdapter,
         context: Context
     ) {
-        viewModel.loadMovie(movieId)
         lifecycleScope.launch {
             viewModel.fragmentState
                 .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                .collect { state ->
-                    handleUiState(state, actorsAdapter, context)
-                }
+                .onEach { state ->
+                    handleUiState(state, context)
+                }.launchIn(this)
+
+            viewModel.movieFlow
+                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                .onEach { movie ->
+                    showData(movie, actorsAdapter, context)
+                }.launchIn(this)
         }
     }
 

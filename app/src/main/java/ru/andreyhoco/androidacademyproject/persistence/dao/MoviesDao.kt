@@ -1,6 +1,5 @@
 package ru.andreyhoco.androidacademyproject.persistence.dao
 
-import androidx.lifecycle.LiveData
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 import ru.andreyhoco.androidacademyproject.persistence.entities.MovieWithActorsAndGenres

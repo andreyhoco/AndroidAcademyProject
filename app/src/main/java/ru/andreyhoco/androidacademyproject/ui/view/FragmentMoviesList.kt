@@ -18,6 +18,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import ru.andreyhoco.TheMovieApp
 import ru.andreyhoco.androidacademyproject.R
@@ -95,8 +97,7 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
     }
 
     private fun handleUiState(
-        state: UiState<List<Movie>>,
-        moviesAdapter: MoviesAdapter,
+        state: UiState,
         context: Context
     ) {
         when (state) {
@@ -105,10 +106,9 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
             }
             is UiState.DataDisplay -> {
                 setLoading(false)
-                val movies = state.value
-                onMoviesChanged(movies, moviesAdapter)
             }
             is UiState.DisplayError -> {
+                setLoading(false)
                 val errorDescription = when (state) {
                     is UiState.DisplayError.ServerError -> {
                         resources.getString(R.string.server_error)
@@ -151,9 +151,15 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
         lifecycleScope.launch {
             viewModel.fragmentState
                 .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                .collect { state ->
-                    handleUiState(state, moviesAdapter, context)
-                }
+                .onEach { state ->
+                    handleUiState(state, context)
+                }.launchIn(this)
+
+            viewModel.moviesFlow
+                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                .onEach { movies ->
+                    onMoviesChanged(movies, moviesAdapter)
+                }.launchIn(this)
         }
     }
 }

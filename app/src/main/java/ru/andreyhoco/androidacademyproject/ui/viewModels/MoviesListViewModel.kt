@@ -2,8 +2,9 @@ package ru.andreyhoco.androidacademyproject.ui.viewModels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
-import ru.andreyhoco.androidacademyproject.BuildConfig
+import kotlinx.coroutines.launch
 import ru.andreyhoco.androidacademyproject.repositories.MovieRepository
 import ru.andreyhoco.ru.andreyhoco.androidacademyproject.ui.UiState
 import ru.andreyhoco.androidacademyproject.ui.uiDataModel.Movie
@@ -14,22 +15,30 @@ class MoviesListViewModel(
     private val repository: MovieRepository
 ) : ViewModel() {
 
-    val fragmentState: StateFlow<UiState<List<Movie>>> = flow {
-        repository.getTopRatedMovies(1).collect { requestResult ->
-            when(requestResult) {
-                is RequestResult.Success -> {
-                    emit(UiState.DataDisplay(requestResult.value))
-                }
-                is RequestResult.Failure -> {
-                    emit(handleErrorResult(requestResult))
-                }
-            }
-        }
-    }.stateIn(viewModelScope, SharingStarted.Lazily, UiState.Loading())
+    val moviesFlow: StateFlow<List<Movie>> = repository
+        .getTopRatedMovies()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    private val _fragmentState = MutableStateFlow<UiState>(UiState.Loading())
+    val fragmentState: StateFlow<UiState> = _fragmentState.asStateFlow()
 
     init {
-        if (BuildConfig.DEBUG) {
-            Timber.plant(Timber.DebugTree())
+        updateMoviesList()
+    }
+
+    fun updateMoviesList() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _fragmentState.value = UiState.Loading()
+            val requestResult = repository.loadTopRatedMovies(1)
+
+            when (requestResult) {
+                is RequestResult.Success -> {
+                    _fragmentState.value = UiState.DataDisplay()
+                }
+                is RequestResult.Failure -> {
+                    _fragmentState.value = handleErrorResult(requestResult)
+                }
+            }
         }
     }
 

@@ -2,11 +2,11 @@ package ru.andreyhoco.androidacademyproject.repositories
 
 import retrofit2.HttpException
 
-sealed class RequestResult<out T> {
+sealed class RequestResult {
 
-    class Success<out T> (val value: T) : RequestResult<T>()
+    class Success : RequestResult()
 
-    sealed class Failure : RequestResult<Nothing>() {
+    sealed class Failure : RequestResult() {
 
         class HttpError(val exception: HttpException) : Failure()
 

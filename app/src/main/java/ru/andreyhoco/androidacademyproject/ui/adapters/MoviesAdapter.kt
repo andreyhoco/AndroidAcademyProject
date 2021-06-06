@@ -30,7 +30,6 @@ class MoviesAdapter(
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val posterImage = view.findViewById<ImageView>(R.id.movie_item_poster)
-//        private val pgText = view.findViewById<AppCompatTextView>(R.id.movie_pg)
         private val titleText = view.findViewById<AppCompatTextView>(R.id.movie_item_title)
         private val genreLine = view.findViewById<AppCompatTextView>(R.id.movie_item_genre)
         private val reviewsLine = view.findViewById<AppCompatTextView>(R.id.movie_item_reviews)
@@ -44,13 +43,7 @@ class MoviesAdapter(
                     movie.title,
                     titleText.textMetricsParamsCompat
                 )
-//                val precomputedPgText = PrecomputedTextCompat.create(
-//                    context.getString(
-//                        R.string.pg_with_placeholder,
-//                        movie.minimumAge
-//                    ),
-//                    pgText.textMetricsParamsCompat
-//                )
+
                 val precomputedGenres = PrecomputedTextCompat.create(
                     movie.genres.joinToString { it.name },
                     genreLine.textMetricsParamsCompat
@@ -76,16 +69,13 @@ class MoviesAdapter(
 
                 withContext(Dispatchers.Main) {
                     titleText.setPrecomputedText(precomputedTitle)
-//                    pgText.setPrecomputedText(precomputedPgText)
                     genreLine.setPrecomputedText(precomputedGenres)
                     durationLine.setPrecomputedText(precomputedDuration)
                     reviewsLine.setPrecomputedText(precomputedReviews)
                 }
             }
 
-//            isFavoriteButton.isChecked = false
             posterImage.loadImage(movie.poster)
-//            posterImage.setImageResource(R.drawable.ic_baseline_movie_24)
         }
     }
 
@@ -93,7 +83,6 @@ class MoviesAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(context)
-        Timber.plant(Timber.DebugTree())
         val calendar = Calendar.getInstance()
         val currTime = calendar.timeInMillis
 

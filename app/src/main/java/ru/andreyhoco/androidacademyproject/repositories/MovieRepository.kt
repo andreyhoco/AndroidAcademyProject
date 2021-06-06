@@ -12,7 +12,6 @@ import ru.andreyhoco.androidacademyproject.network.TmdbApiService
 import ru.andreyhoco.androidacademyproject.network.responses.ActorResponse
 import ru.andreyhoco.androidacademyproject.network.responses.DetailedMovieResponse
 import ru.andreyhoco.androidacademyproject.network.responses.MovieIdResponse
-import ru.andreyhoco.androidacademyproject.persistence.dao.MoviesDao
 import ru.andreyhoco.androidacademyproject.persistence.entities.*
 import timber.log.Timber
 
@@ -31,13 +30,7 @@ class MovieRepository(
     private val movieActorCrossRefDao = appDatabase.movieActorCrossRefDao
     private val movieGenreCrossRefDao = appDatabase.movieGenreCrossRefDao
 
-    init {
-        if (BuildConfig.DEBUG) {
-            Timber.plant(Timber.DebugTree())
-        }
-    }
-
-    private suspend fun loadTopRatedMovies(pageNum: Int): RequestResult<List<Movie>> {
+    suspend fun loadTopRatedMovies(pageNum: Int): RequestResult {
         return withContext(Dispatchers.IO) {
             try {
                 val popularMoviesIds: List<MovieIdResponse> = tmdbService
@@ -47,133 +40,67 @@ class MovieRepository(
                 val remoteMovies: List<Movie> = popularMoviesIds.map {
                     val movieResponse = tmdbService.getMovieById(it.id)
                     val actorsResponse = tmdbService.getActorsByMovieId(it.id).actors
-
                     movieResponse.toMovie(actorsResponse)
                 }
 
-                RequestResult.Success(remoteMovies)
+                remoteMovies.forEach { movie ->
+                    insertMovieInDb(movie)
+                }
+
+                RequestResult.Success()
             } catch (e: Exception) {
                 handleNetworkException(e)
             }
-
         }
     }
 
-    suspend fun getTopRatedMovies(pageNum: Int): Flow<RequestResult<List<Movie>>> {
-        val localMoviesFlow = moviesDao
-            .getAllMoviesWithActorsAndGenresFlow()
-            .map { moviesWithActorsAndGenres ->
-                val moviesList = moviesWithActorsAndGenres.map { movieWithActorsAndGenres ->
-                    movieWithActorsAndGenres.toMovie()
-                }
-                RequestResult.Success(moviesList)
-            }.flowOn(Dispatchers.IO)
-
-        val moviesRequestResultFlow = flow {
-            val localMovies = moviesDao.getAllMoviesWithActorsAndGenres().map {
-                it.toMovie()
-            }
-
-            val moviesRequestResult = loadTopRatedMovies(pageNum)
-            if ((moviesRequestResult is RequestResult.Success)) {
-                val remoteMovies = moviesRequestResult.value
-
-                if (remoteMovies.toSet() != localMovies.toSet()) {
-                    remoteMovies.forEach {
-                        insertMovieInDb(it)
-                    }
-                }
-            } else {
-                emit(moviesRequestResult)
-            }
-
-        }.flowOn(Dispatchers.IO)
-
-        return merge(localMoviesFlow, moviesRequestResultFlow)
+     fun getTopRatedMovies(): Flow<List<Movie>> {
+         return moviesDao.getAllMoviesWithActorsAndGenresFlow()
+             .map { moviesWithActorsAndGenres ->
+                 moviesWithActorsAndGenres.map { movieWithActorsAndGenres ->
+                     movieWithActorsAndGenres.toMovie()
+                 }
+             }.flowOn(Dispatchers.IO)
     }
 
-    suspend fun getMovieById(id: Long): Flow<RequestResult<Movie>> {
-
-        val localMovieFlow = moviesDao
-            .getMovieWithActorsAndGenresFlowByMovieId(id)
+    fun getMovieById(id: Long): Flow<Movie> {
+        return moviesDao.getMovieWithActorsAndGenresFlowByMovieId(id)
             .map { movieWithActorsAndGenres ->
-                RequestResult.Success(movieWithActorsAndGenres.toMovie())
+                movieWithActorsAndGenres.toMovie()
             }.flowOn(Dispatchers.IO)
-
-        val movieRequestResultFlow = flow {
-            val localMovie = moviesDao.getMovieWithActorsAndGenresById(id).toMovie()
-
-            val movieRequestResult = loadMovieById(id)
-            if (movieRequestResult is RequestResult.Success) {
-
-                val remoteMovie = movieRequestResult.value
-                if (remoteMovie != localMovie) {
-                    insertMovieInDb(remoteMovie)
-                }
-            } else {
-                emit(movieRequestResult)
-            }
-        }.flowOn(Dispatchers.IO)
-
-        return merge(localMovieFlow, movieRequestResultFlow)
     }
 
-    suspend fun updateMovies(): RequestResult<List<Movie>> {
-        return withContext(Dispatchers.IO) {
-            val moviesRequestResult = loadTopRatedMovies(1)
-
-            when (moviesRequestResult) {
-                is RequestResult.Success -> {
-                    val localMoviesIds = moviesDao.getAllMoviesWithActorsAndGenres().map {
-                        it.toMovie().id
-                    }
-
-                    val remoteMovies = moviesRequestResult.value
-                    remoteMovies.forEach { movie ->
-                        insertMovieInDb(movie)
-                    }
-
-                    val newMovies = remoteMovies.filterNot { remoteMovie ->
-                        localMoviesIds.contains(remoteMovie.id)
-                    }
-
-                    if (newMovies.isEmpty()) {
-                        RequestResult.Success(remoteMovies)
-                    } else {
-                        RequestResult.Success(newMovies)
-                    }
-                }
-                is RequestResult.Failure -> {
-                    moviesRequestResult
-                }
-            }
-        }
-    }
-
-    private suspend fun loadMovieById(id: Long): RequestResult<Movie> {
+     suspend fun loadMovieById(id: Long): RequestResult {
         return withContext(Dispatchers.IO) {
             try {
                 val detailedMovieResponse = tmdbService.getMovieById(id)
                 val actorsResponse = tmdbService.getActorsByMovieId(id).actors
 
-                RequestResult.Success(detailedMovieResponse.toMovie(actorsResponse))
+                insertMovieInDb(detailedMovieResponse.toMovie(actorsResponse))
+                RequestResult.Success()
             } catch (e: Exception) {
                 handleNetworkException(e)
             }
         }
     }
 
-    suspend fun loadActorsByMovieId(id: Long): RequestResult<List<Actor>> {
+    suspend fun loadActorsByMovieId(id: Long): RequestResult {
         return withContext(Dispatchers.IO) {
             try {
                 val actorResponse = tmdbService.getActorsByMovieId(id)
                 val actors = actorResponse.actors.map { it.toActor() }
 
-                RequestResult.Success(actors)
+                //insertActors
+
+                RequestResult.Success()
             } catch (e: Exception) {
                 handleNetworkException(e)
             }
         }
+    }
+
+    suspend fun getRandomTopRatedMovie(): Movie {
+        return moviesDao.getAllMoviesWithActorsAndGenres().random().toMovie()
     }
 
     private fun handleNetworkException(e: Exception): RequestResult.Failure {

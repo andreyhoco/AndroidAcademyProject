@@ -1,14 +1,12 @@
 package ru.andreyhoco.ru.andreyhoco.androidacademyproject.ui
 
-sealed class UiState<out T> {
+sealed class UiState {
 
-    class Loading : UiState<Nothing>()
+    class Loading : UiState()
 
-    class DataDisplay<out T>(
-        val value: T
-    ) : UiState<T>()
+    class DataDisplay : UiState()
 
-    sealed class DisplayError : UiState<Nothing>() {
+    sealed class DisplayError : UiState() {
 
         class NetworkError: DisplayError()
 
