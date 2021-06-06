@@ -48,8 +48,6 @@ class MoviesListViewModel(
                 .w("Http error: ${result.exception.message}")
             return UiState.DisplayError.ServerError()
         } else {
-            Timber.tag("NETWORK_ERROR")
-                .w("${MovieDetailsViewModel::class.java.name}: $result")
             return UiState.DisplayError.NetworkError()
         }
     }

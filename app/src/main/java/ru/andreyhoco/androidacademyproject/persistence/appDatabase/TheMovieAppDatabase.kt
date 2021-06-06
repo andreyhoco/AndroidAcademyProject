@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +23,7 @@ import ru.andreyhoco.androidacademyproject.persistence.initialMovies.AssetsRepos
     GenreEntity::class,
     MovieActorCrossRef::class,
     MovieGenreCrossRef::class],
-    version = 1
+    version = 2
     )
 abstract class TheMovieAppDatabase : RoomDatabase() {
 
@@ -46,6 +47,7 @@ abstract class TheMovieAppDatabase : RoomDatabase() {
             )
                 .fallbackToDestructiveMigration()
                 .addCallback(MovieAssetsDatabaseCallback(applicationContext, coroutineScope))
+                .addMigrations(MigrationFrom1To2())
                 .build()
 
             DATABASE = databaseInstance
@@ -68,6 +70,14 @@ abstract class TheMovieAppDatabase : RoomDatabase() {
                         DATABASE?.movieGenreCrossRefDao
                     )
                 }
+            }
+        }
+
+        private class MigrationFrom1To2 : Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE Movies ADD COLUMN " +
+                        "${TheMovieAppDbContract.Movies.COLUMN_NAME_RELEASE_DATE} INTEGER " +
+                        "NOT NULL DEFAULT 0")
             }
         }
 

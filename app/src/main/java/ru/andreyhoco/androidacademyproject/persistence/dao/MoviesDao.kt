@@ -13,6 +13,9 @@ interface MoviesDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMovies(movies: List<MovieEntity>)
 
+    @Query("SELECT * FROM Movies")
+    suspend fun getAll(): MovieEntity
+
     @Transaction
     @Query("SELECT * FROM Movies ORDER BY ratings DESC, title ASC")
     fun getAllMoviesWithActorsAndGenresFlow(): Flow<List<MovieWithActorsAndGenres>>

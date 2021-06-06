@@ -13,6 +13,8 @@ import ru.andreyhoco.androidacademyproject.network.responses.ActorResponse
 import ru.andreyhoco.androidacademyproject.network.responses.DetailedMovieResponse
 import ru.andreyhoco.androidacademyproject.network.responses.MovieIdResponse
 import ru.andreyhoco.androidacademyproject.persistence.entities.*
+import ru.andreyhoco.androidacademyproject.ui.viewModels.MovieDetailsViewModel
+import timber.log.Timber
 
 class MovieRepository(
     private val tmdbService: TmdbApiService,
@@ -28,6 +30,10 @@ class MovieRepository(
     private val genresDao = appDatabase.genresDao
     private val movieActorCrossRefDao = appDatabase.movieActorCrossRefDao
     private val movieGenreCrossRefDao = appDatabase.movieGenreCrossRefDao
+
+    suspend fun testAll() {
+        moviesDao.getAll()
+    }
 
     suspend fun loadTopRatedMovies(pageNum: Int): RequestResult {
         return withContext(Dispatchers.IO) {
@@ -48,6 +54,9 @@ class MovieRepository(
 
                 RequestResult.Success()
             } catch (e: Exception) {
+                Timber.tag("CAUGHT_ERROR")
+                    .w("${this@MovieRepository::class.java.name}: $e")
+
                 handleNetworkException(e)
             }
         }
@@ -173,7 +182,9 @@ class MovieRepository(
             ratings = this.ratings,
             numberOfRatings = this.numberOfRatings,
             isAdult = (this.minimumAge > 16),
-            runtime = this.runtime
+            runtime = this.runtime,
+
+            releaseDate = 0
         )
     }
 

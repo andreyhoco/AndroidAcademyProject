@@ -15,6 +15,7 @@ object TheMovieAppDbContract {
         const val COLUMN_NAME_NUM_OF_RATINGS = "number_of_ratings"
         const val COLUMN_NAME_IS_ADULT = "is_adult"
         const val COLUMN_NAME_RUNTIME = "runtime"
+        const val COLUMN_NAME_RELEASE_DATE = "release_date"
     }
 
     object Actors {

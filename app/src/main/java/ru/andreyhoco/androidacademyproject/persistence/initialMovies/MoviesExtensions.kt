@@ -18,7 +18,9 @@ fun Movie.getMovieEntity(): MovieEntity {
         ratings = this.ratings,
         numberOfRatings = this.numberOfRatings,
         isAdult = (this.minimumAge > 16),
-        runtime = this.runtime
+        runtime = this.runtime,
+
+        releaseDate = 0
     )
 }
 

@@ -16,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -58,6 +59,12 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
         initViews(view)
         val moviesAdapter = createAdapter(context)
         setUpMoviesList(moviesAdapter, context)
+
+        val repo = (requireActivity().application as TheMovieApp).appDi.movieRepository
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            repo.testAll()
+        }
 
         val moviesListViewModel: MoviesListViewModel = ViewModelProvider(
             this,

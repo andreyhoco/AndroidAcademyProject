@@ -15,13 +15,13 @@ data class MovieEntity(
     val title: String,
 
     @ColumnInfo(name = TheMovieAppDbContract.Movies.COLUMN_NAME_OVERVIEW)
-    val overview: String,
+    val overview: String = "",
 
     @ColumnInfo(name = TheMovieAppDbContract.Movies.COLUMN_NAME_POSTER)
     val poster: String,
 
     @ColumnInfo(name = TheMovieAppDbContract.Movies.COLUMN_NAME_BACKDROP)
-    val backdrop: String,
+    val backdrop: String = "",
 
     @ColumnInfo(name = TheMovieAppDbContract.Movies.COLUMN_NAME_RATINGS)
     val ratings: Float,
@@ -30,8 +30,11 @@ data class MovieEntity(
     val numberOfRatings: Int,
 
     @ColumnInfo(name = TheMovieAppDbContract.Movies.COLUMN_NAME_IS_ADULT)
-    val isAdult: Boolean,
+    val isAdult: Boolean = false,
 
     @ColumnInfo(name = TheMovieAppDbContract.Movies.COLUMN_NAME_RUNTIME)
-    val runtime: Int,
+    val runtime: Int = 0,
+
+    @ColumnInfo(name = TheMovieAppDbContract.Movies.COLUMN_NAME_RELEASE_DATE)
+    val releaseDate: Long
 )

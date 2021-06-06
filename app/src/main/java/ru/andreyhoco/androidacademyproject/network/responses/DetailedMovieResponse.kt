@@ -32,9 +32,9 @@ data class DetailedMovieResponse (
     @SerialName("runtime")
     val runtime: Long,
 
-    @SerialName("vote_average")
+    @SerialName("vote_count")
     val numberOfRatings: Int,
 
-    @SerialName("vote_count")
+    @SerialName("vote_average")
     val ratings: Float
 )
