@@ -46,6 +46,8 @@ class FragmentMovieDetails : Fragment() {
     private var castRecyclerView: RecyclerView? = null
     private var loadingView: ProgressBar? = null
     private var backgroundPlaceholder: View? = null
+    private var releaseYearText: TextView? = null
+    private var durationText: TextView? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -97,12 +99,17 @@ class FragmentMovieDetails : Fragment() {
             movie.minimumAge
         )
         titleText?.text = movie.title
+        releaseYearText?.text = movie.releaseYear.toString()
         genreLine?.text = movie.genres.joinToString { it.name }
         reviewsLine?.text = context.getString(
             R.string.reviews_with_placeholder,
             movie.numberOfRatings
         )
         storylineText?.text = movie.overview
+        durationText?.text = context.getString(
+            R.string.film_duration,
+            movie.runtime
+        )
 //          ratingBar = TODO
 
         if (movie.actors.isEmpty()) {
@@ -190,6 +197,8 @@ class FragmentMovieDetails : Fragment() {
         castRecyclerView = view.findViewById(R.id.actor_list)
         loadingView = view.findViewById(R.id.loading_circle)
         backgroundPlaceholder = view.findViewById(R.id.loading_placeholder)
+        releaseYearText = view.findViewById(R.id.movie_release_year)
+        durationText = view.findViewById(R.id.duration)
     }
 
     private fun setUpListeners() {
@@ -231,6 +240,8 @@ class FragmentMovieDetails : Fragment() {
         castRecyclerView = null
         loadingView = null
         backgroundPlaceholder = null
+        releaseYearText = null
+        durationText = null
     }
 
     companion object {

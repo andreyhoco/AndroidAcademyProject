@@ -1,12 +1,10 @@
-package ru.andreyhoco.androidacademyproject.persistence
+package ru.andreyhoco.androidacademyproject.persistence.initialMovies
 
 import ru.andreyhoco.androidacademyproject.persistence.entities.ActorEntity
 import ru.andreyhoco.androidacademyproject.persistence.entities.GenreEntity
 import ru.andreyhoco.androidacademyproject.persistence.entities.MovieEntity
 
 import ru.andreyhoco.androidacademyproject.ui.uiDataModel.Movie
-
-
 
 fun Movie.getMovieEntity(): MovieEntity {
     return MovieEntity(
@@ -19,8 +17,7 @@ fun Movie.getMovieEntity(): MovieEntity {
         numberOfRatings = this.numberOfRatings,
         isAdult = (this.minimumAge > 16),
         runtime = this.runtime,
-
-        releaseDate = 0
+        releaseYear = this.releaseYear
     )
 }
 

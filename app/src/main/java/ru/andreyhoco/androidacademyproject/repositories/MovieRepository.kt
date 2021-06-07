@@ -11,9 +11,9 @@ import ru.andreyhoco.androidacademyproject.ui.uiDataModel.Movie
 import ru.andreyhoco.androidacademyproject.network.TmdbApiService
 import ru.andreyhoco.androidacademyproject.network.responses.ActorResponse
 import ru.andreyhoco.androidacademyproject.network.responses.DetailedMovieResponse
-import ru.andreyhoco.androidacademyproject.network.responses.MovieIdResponse
+import ru.andreyhoco.androidacademyproject.network.responses.MovieShortResponse
 import ru.andreyhoco.androidacademyproject.persistence.entities.*
-import ru.andreyhoco.androidacademyproject.ui.viewModels.MovieDetailsViewModel
+import ru.andreyhoco.androidacademyproject.ui.uiDataModel.MovieShortDesc
 import timber.log.Timber
 
 class MovieRepository(
@@ -31,38 +31,16 @@ class MovieRepository(
     private val movieActorCrossRefDao = appDatabase.movieActorCrossRefDao
     private val movieGenreCrossRefDao = appDatabase.movieGenreCrossRefDao
 
-    suspend fun testAll() {
-        moviesDao.getAll()
+    fun getTopRatedMoviesWithShortDesc(): Flow<List<MovieShortDesc>> {
+        return moviesDao.getAllMoviesWithActorsAndGenresFlow()
+            .map { moviesWithActorsAndGenres ->
+                moviesWithActorsAndGenres.map { movieWithActorsAndGenres ->
+                    movieWithActorsAndGenres.toMovieShortDesc()
+                }
+            }.flowOn(Dispatchers.IO)
     }
 
-    suspend fun loadTopRatedMovies(pageNum: Int): RequestResult {
-        return withContext(Dispatchers.IO) {
-            try {
-                val popularMoviesIds: List<MovieIdResponse> = tmdbService
-                    .getTopRatedMovies(pageNum)
-                    .moviesResponseShort
-
-                val remoteMovies: List<Movie> = popularMoviesIds.map {
-                    val movieResponse = tmdbService.getMovieById(it.id)
-                    val actorsResponse = tmdbService.getActorsByMovieId(it.id).actors
-                    movieResponse.toMovie(actorsResponse)
-                }
-
-                remoteMovies.forEach { movie ->
-                    insertMovieInDb(movie)
-                }
-
-                RequestResult.Success()
-            } catch (e: Exception) {
-                Timber.tag("CAUGHT_ERROR")
-                    .w("${this@MovieRepository::class.java.name}: $e")
-
-                handleNetworkException(e)
-            }
-        }
-    }
-
-     fun getTopRatedMovies(): Flow<List<Movie>> {
+    fun getTopRatedMovies(): Flow<List<Movie>> {
          return moviesDao.getAllMoviesWithActorsAndGenresFlow()
              .map { moviesWithActorsAndGenres ->
                  moviesWithActorsAndGenres.map { movieWithActorsAndGenres ->
@@ -78,13 +56,34 @@ class MovieRepository(
             }.flowOn(Dispatchers.IO)
     }
 
+    suspend fun loadTopRatedMoviesShortDesc(pageNum: Int): RequestResult {
+        return withContext(Dispatchers.IO) {
+            try {
+                val popularMoviesShortResponse: List<MovieShortResponse> = tmdbService
+                    .getTopRatedMovies(pageNum)
+                    .movieShortResponses
+
+                popularMoviesShortResponse.forEach { movieShortResponse ->
+                    insertShortResponse(movieShortResponse)
+                }
+
+                RequestResult.Success()
+            } catch (e: Exception) {
+                Timber.tag("CAUGHT_ERROR")
+                    .w("${this@MovieRepository::class.java.name}: $e")
+
+                handleNetworkException(e)
+            }
+        }
+    }
+
      suspend fun loadMovieById(id: Long): RequestResult {
         return withContext(Dispatchers.IO) {
             try {
                 val detailedMovieResponse = tmdbService.getMovieById(id)
                 val actorsResponse = tmdbService.getActorsByMovieId(id).actors
+                insertMovieWithActors(detailedMovieResponse, actorsResponse)
 
-                insertMovieInDb(detailedMovieResponse.toMovie(actorsResponse))
                 RequestResult.Success()
             } catch (e: Exception) {
                 handleNetworkException(e)
@@ -95,15 +94,62 @@ class MovieRepository(
     suspend fun loadActorsByMovieId(id: Long): RequestResult {
         return withContext(Dispatchers.IO) {
             try {
-                val actorResponse = tmdbService.getActorsByMovieId(id)
-                val actors = actorResponse.actors.map { it.toActor() }
+                val actorsByMovieIdResponse = tmdbService.getActorsByMovieId(id)
+                val actors = actorsByMovieIdResponse.actors
 
-                //insertActors
+                actorsDao.insertActors(
+                    actors.map { actorResponse ->
+                        actorResponse.toActorEntity()
+                    }
+                )
 
                 RequestResult.Success()
             } catch (e: Exception) {
                 handleNetworkException(e)
             }
+        }
+    }
+
+    private suspend fun insertShortResponse(movieShortResponse: MovieShortResponse) {
+        val movieEntity = movieShortResponse.toMovieEntity()
+
+        val insertResult = moviesDao
+            .insertMovieShortDesc(movieEntity)
+
+        if (insertResult == -1L) {
+            moviesDao.updateMovieByShortDesc(
+                id = movieEntity.movieId,
+                newNumOfRatings = movieEntity.numberOfRatings,
+                newRating = movieEntity.ratings
+            )
+        }
+
+        movieShortResponse.genreIds.forEach { genreId ->
+            movieGenreCrossRefDao.insert(MovieGenreCrossRef(
+                movieShortResponse.id,
+                genreId
+            ))
+        }
+    }
+
+    private suspend fun insertMovieWithActors(
+        movieResponse: DetailedMovieResponse,
+        actorsResponse: List<ActorResponse>
+    ) {
+        moviesDao.insert(movieResponse.toMovieEntity())
+        actorsDao.insertActors(
+            actorsResponse.map { actorResponse ->
+                actorResponse.toActorEntity()
+            }
+        )
+
+        actorsResponse.map { actorResponse ->
+            actorResponse.id
+        }.forEach { actorId ->
+            movieActorCrossRefDao.insert(MovieActorCrossRef(
+                movieResponse.movieId,
+                actorId
+            ))
         }
     }
 
@@ -119,23 +165,21 @@ class MovieRepository(
         }
     }
 
-    private suspend fun insertMovieInDb(movie: Movie) {
-        moviesDao.insert(movie.getMovieEntity())
-        actorsDao.insertActors(movie.getActorEntities())
-        genresDao.insertGenres(movie.getGenreEntities())
-
-        movie.actors.forEach { actor ->
-            movieActorCrossRefDao.insert(MovieActorCrossRef(movie.id, actor.id))
-        }
-
-        movie.genres.forEach { genre ->
-            movieGenreCrossRefDao.insert(MovieGenreCrossRef(movie.id, genre.id))
-        }
-    }
-
     private fun ActorResponse.toActor(): Actor {
         return Actor(
             id = this.id,
+            name = this.originalName,
+            picture = if (this.profilePath == null) {
+                ""
+            } else {
+                baseImageLoadUrl + profileSize + this.profilePath
+            }
+        )
+    }
+
+    private fun ActorResponse.toActorEntity(): ActorEntity {
+        return ActorEntity(
+            actorId = this.id,
             name = this.originalName,
             picture = if (this.profilePath == null) {
                 ""
@@ -155,7 +199,7 @@ class MovieRepository(
             ratings = this.ratings,
             numberOfRatings = this.numberOfRatings,
             minimumAge = if (this.adult) 16 else 13,
-            runtime = this.runtime.toInt(),
+            runtime = this.runtime,
             genres = this.genres.map {
                 Genre(
                     id = it.genreId,
@@ -168,7 +212,20 @@ class MovieRepository(
                 }
             } else {
                 emptyList()
-            }
+            },
+            releaseYear = releaseDate.substringBefore('-').toInt()
+        )
+    }
+
+    private fun MovieShortResponse.toMovieEntity(): MovieEntity {
+        return MovieEntity(
+            movieId = this.id,
+            title = this.title,
+            poster = baseImageLoadUrl + posterSize + this.poster,
+            ratings = this.ratings,
+            numberOfRatings = this.numberOfRatings,
+            isAdult = false,
+            releaseYear = this.releaseDate.substringBefore('-').toInt()
         )
     }
 
@@ -183,8 +240,7 @@ class MovieRepository(
             numberOfRatings = this.numberOfRatings,
             isAdult = (this.minimumAge > 16),
             runtime = this.runtime,
-
-            releaseDate = 0
+            releaseYear = this.releaseYear
         )
     }
 
@@ -205,6 +261,21 @@ class MovieRepository(
                 picture = it.picture
             )
         }
+    }
+
+    private fun DetailedMovieResponse.toMovieEntity(): MovieEntity {
+        return MovieEntity(
+            movieId = this.movieId,
+            title = this.title,
+            overview = this.overview,
+            poster = baseImageLoadUrl + posterSize + this.posterPath,
+            backdrop = baseImageLoadUrl + backdropSize + this.backdropPath,
+            ratings = this.ratings,
+            numberOfRatings = this.numberOfRatings,
+            isAdult = this.adult,
+            runtime = this.runtime,
+            releaseYear = this.releaseDate.substringBefore('-').toInt()
+        )
     }
 
     private fun MovieWithActorsAndGenres.toMovie(): Movie {
@@ -232,7 +303,27 @@ class MovieRepository(
                     name = it.name,
                     picture = it.picture
                 )
-            }
+            },
+            releaseYear = this.movie.releaseYear
+        )
+    }
+
+    private fun MovieWithActorsAndGenres.toMovieShortDesc(): MovieShortDesc {
+        val movie = this.movie
+
+        return MovieShortDesc(
+            id = movie.movieId,
+            title = movie.title,
+            poster = movie.poster,
+            ratings = movie.ratings,
+            numberOfRatings = movie.numberOfRatings,
+            genres = this.genres.map {
+                Genre(
+                    id = it.genreId,
+                    name = it.name
+                )
+            },
+            releaseYear = this.movie.releaseYear
         )
     }
 }

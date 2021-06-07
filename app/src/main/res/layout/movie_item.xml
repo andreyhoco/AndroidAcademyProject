@@ -39,6 +39,7 @@
         android:layout_marginHorizontal="6dp"
         android:textColor="@color/colorInk"
         android:textSize="10sp"
+        android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/movie_item_title"
         app:layout_constraintEnd_toEndOf="@id/movie_item_poster"
         app:layout_constraintHorizontal_bias="0"
@@ -50,14 +51,14 @@
         android:id="@+id/movie_item_reviews"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginVertical="2dp"
         android:layout_marginStart="6dp"
+        android:layout_marginBottom="8dp"
         android:textColor="@color/colorTextGray"
         android:textSize="8sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="@id/movie_item_poster"
         app:layout_constraintTop_toBottomOf="@id/movie_item_genre"
-        app:layout_constraintBottom_toTopOf="@id/movie_item_duration"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintVertical_bias="1"
         tools:ignore="SmallSp"
         tools:text="@string/reviews" />
@@ -78,18 +79,20 @@
         tools:text="Avengers: End Game" />
 
     <TextView
-        android:id="@+id/movie_item_duration"
+        android:id="@+id/movie_release_year"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:textColor="@color/colorTextGray"
-        android:textSize="8sp"
+        android:textColor="@color/colorInk"
+        android:layout_marginVertical="2dp"
+        android:textSize="10sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/movie_item_genre"
+        app:layout_constraintBottom_toTopOf="@id/movie_item_reviews"
         app:layout_constraintEnd_toEndOf="@id/movie_item_title"
         app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintVertical_bias="0"
         app:layout_constraintStart_toStartOf="@id/movie_item_title"
         tools:ignore="SmallSp"
-        tools:text="137 min" />
+        tools:text="2021" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

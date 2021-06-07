@@ -28,8 +28,8 @@ class MovieDetailsViewModel(
 
     init {
         viewModelScope.launch(SupervisorJob()) {
-            redirectMovieJob = redirectMovieFlowTo(this, movieId)
             updateMovie()
+            redirectMovieJob = redirectMovieFlowTo(this, movieId)
         }
     }
 

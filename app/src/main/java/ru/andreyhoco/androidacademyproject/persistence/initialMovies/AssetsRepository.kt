@@ -57,9 +57,6 @@ internal class AssetsRepository(private val context: Context) {
         val data = readAssetFileToString("data.json")
         val jsonMovies = jsonFormat.decodeFromString<List<JsonMovie>>(data)
 
-        val genresMap = genres.associateBy { Genre::id }
-        val actorsMap = actors.associateBy { Actor::id }
-
         jsonMovies.map { jsonMovie ->
             Movie(
                 id = jsonMovie.id.toLong(),
@@ -76,7 +73,11 @@ internal class AssetsRepository(private val context: Context) {
                 }.flatten(),
                 actors = jsonMovie.actors.map { id ->
                     actors.filter { it.id == id }
-                }.flatten()
+                }.flatten(),
+                releaseYear = jsonMovie
+                    .releaseDate
+                    .substringBefore('-')
+                    .toInt()
             )
         }
     }

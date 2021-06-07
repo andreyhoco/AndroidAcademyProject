@@ -4,7 +4,6 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
 import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.PrecomputedTextCompat
@@ -17,14 +16,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.andreyhoco.androidacademyproject.R
-import ru.andreyhoco.androidacademyproject.ui.uiDataModel.Movie
+import ru.andreyhoco.androidacademyproject.ui.uiDataModel.MovieShortDesc
 import timber.log.Timber
 import java.util.*
 
 class MoviesAdapter(
     private val context: Context,
     private val clickListener: OnMovieItemClicked,
-    var movies: List<Movie>,
+    var movies: List<MovieShortDesc>,
     private val coroutineScope: CoroutineScope
 ) : RecyclerView.Adapter<MoviesAdapter.ViewHolder>() {
 
@@ -33,49 +32,42 @@ class MoviesAdapter(
         private val titleText = view.findViewById<AppCompatTextView>(R.id.movie_item_title)
         private val genreLine = view.findViewById<AppCompatTextView>(R.id.movie_item_genre)
         private val reviewsLine = view.findViewById<AppCompatTextView>(R.id.movie_item_reviews)
-        private val durationLine = view.findViewById<AppCompatTextView>(R.id.movie_item_duration)
+        private val yearOfReleaseLine = view.findViewById<AppCompatTextView>(R.id.movie_release_year)
 //        private val isFavoriteButton = view.findViewById<CheckBox>(R.id.movie_item_is_favorite)
 //        private val rating = TODO
 
-        fun bind(movie: Movie) {
+        fun bind(movieShortDesc: MovieShortDesc) {
             coroutineScope.launch(Dispatchers.IO) {
                 val precomputedTitle = PrecomputedTextCompat.create(
-                    movie.title,
+                    movieShortDesc.title,
                     titleText.textMetricsParamsCompat
                 )
 
                 val precomputedGenres = PrecomputedTextCompat.create(
-                    movie.genres.joinToString { it.name },
+                    movieShortDesc.genres.joinToString { it.name },
                     genreLine.textMetricsParamsCompat
                 )
                 val precomputedReviews = PrecomputedTextCompat.create(
                     context.getString(
                         R.string.reviews_with_placeholder,
-                        movie.numberOfRatings
+                        movieShortDesc.numberOfRatings
                     ),
                     reviewsLine.textMetricsParamsCompat
                 )
                 val precomputedDuration = PrecomputedTextCompat.create(
-                    if (movie.runtime == 0) {
-                        ""
-                    } else {
-                        context.getString(
-                            R.string.film_duration,
-                            movie.runtime
-                        )
-                    },
-                    durationLine.textMetricsParamsCompat
+                    movieShortDesc.releaseYear.toString(),
+                    yearOfReleaseLine.textMetricsParamsCompat
                 )
 
                 withContext(Dispatchers.Main) {
                     titleText.setPrecomputedText(precomputedTitle)
                     genreLine.setPrecomputedText(precomputedGenres)
-                    durationLine.setPrecomputedText(precomputedDuration)
+                    yearOfReleaseLine.setPrecomputedText(precomputedDuration)
                     reviewsLine.setPrecomputedText(precomputedReviews)
                 }
             }
 
-            posterImage.loadImage(movie.poster)
+            posterImage.loadImage(movieShortDesc.poster)
         }
     }
 

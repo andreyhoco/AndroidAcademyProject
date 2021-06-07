@@ -13,9 +13,9 @@ import kotlinx.coroutines.withContext
 import ru.andreyhoco.androidacademyproject.persistence.TheMovieAppDbContract
 import ru.andreyhoco.androidacademyproject.persistence.dao.*
 import ru.andreyhoco.androidacademyproject.persistence.entities.*
-import ru.andreyhoco.androidacademyproject.persistence.getActorEntities
-import ru.andreyhoco.androidacademyproject.persistence.getGenreEntities
-import ru.andreyhoco.androidacademyproject.persistence.getMovieEntity
+import ru.andreyhoco.androidacademyproject.persistence.initialMovies.getActorEntities
+import ru.andreyhoco.androidacademyproject.persistence.initialMovies.getGenreEntities
+import ru.andreyhoco.androidacademyproject.persistence.initialMovies.getMovieEntity
 import ru.andreyhoco.androidacademyproject.persistence.initialMovies.AssetsRepository
 
 @Database(entities = [MovieEntity::class,

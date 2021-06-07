@@ -14,6 +14,9 @@ interface GenresDao {
     @Query("SELECT * FROM Genres")
     suspend fun getAll(): List<GenreEntity>
 
+    @Query("SELECT * FROM Genres WHERE genre_id IN (:genreIds)")
+    suspend fun getGenresByIds(genreIds: List<Long>): List<GenreEntity>
+
     @Query("DELETE FROM Genres WHERE genre_id == :id")
     suspend fun deleteGenreById(id: Long)
 

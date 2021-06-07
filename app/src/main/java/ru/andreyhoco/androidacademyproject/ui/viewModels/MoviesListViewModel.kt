@@ -7,16 +7,16 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.andreyhoco.androidacademyproject.repositories.MovieRepository
 import ru.andreyhoco.ru.andreyhoco.androidacademyproject.ui.UiState
-import ru.andreyhoco.androidacademyproject.ui.uiDataModel.Movie
 import ru.andreyhoco.androidacademyproject.repositories.RequestResult
+import ru.andreyhoco.androidacademyproject.ui.uiDataModel.MovieShortDesc
 import timber.log.Timber
 
 class MoviesListViewModel(
     private val repository: MovieRepository
 ) : ViewModel() {
 
-    val moviesFlow: StateFlow<List<Movie>> = repository
-        .getTopRatedMovies()
+    val moviesFlow: StateFlow<List<MovieShortDesc>> = repository
+        .getTopRatedMoviesWithShortDesc()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val _fragmentState = MutableStateFlow<UiState>(UiState.Loading())
@@ -29,7 +29,8 @@ class MoviesListViewModel(
     fun updateMoviesList() {
         viewModelScope.launch(Dispatchers.IO) {
             _fragmentState.value = UiState.Loading()
-            val requestResult = repository.loadTopRatedMovies(1)
+//            val requestResult = repository.loadTopRatedMovies(1)
+            val requestResult = repository.loadTopRatedMoviesShortDesc(1)
 
             when (requestResult) {
                 is RequestResult.Success -> {

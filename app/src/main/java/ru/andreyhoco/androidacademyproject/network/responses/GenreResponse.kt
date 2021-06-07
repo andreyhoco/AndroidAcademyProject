@@ -1,4 +1,4 @@
-package ru.andreyhoco.ru.andreyhoco.androidacademyproject.network.responses
+package ru.andreyhoco.androidacademyproject.network.responses
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

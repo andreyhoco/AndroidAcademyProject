@@ -36,5 +36,5 @@ data class MovieEntity(
     val runtime: Int = 0,
 
     @ColumnInfo(name = TheMovieAppDbContract.Movies.COLUMN_NAME_RELEASE_DATE)
-    val releaseDate: Long
+    val releaseYear: Int
 )

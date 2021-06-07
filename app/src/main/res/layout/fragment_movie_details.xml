@@ -84,7 +84,23 @@
             app:layout_constraintHorizontal_bias="0"
             app:layout_constraintStart_toEndOf="@id/left_guideline"
             app:layout_constraintEnd_toStartOf="@id/right_guideline"
-            app:layout_constraintTop_toBottomOf="@id/movie_title" />
+            app:layout_constraintTop_toBottomOf="@id/reviews" />
+
+        <TextView
+            android:id="@+id/movie_release_year"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorInk"
+            android:layout_marginTop="4dp"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/tag_line"
+            app:layout_constraintEnd_toEndOf="@id/right_guideline"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toStartOf="@id/left_guideline"
+            tools:ignore="SmallSp"
+            tools:text="2021" />
+
 
         <TextView
             android:id="@+id/reviews"
@@ -97,7 +113,20 @@
             android:layout_marginStart="9dp"
             app:layout_constraintStart_toEndOf="@id/star5"
             app:layout_constraintEnd_toStartOf="@id/right_guideline"
-            app:layout_constraintTop_toBottomOf="@id/tag_line" />
+            app:layout_constraintTop_toBottomOf="@id/movie_title" />
+
+        <TextView
+            android:id="@+id/duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="127 min"
+            android:textColor="@color/colorTextGray"
+            android:textSize="14sp"
+            android:layout_marginStart="12dp"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintTop_toTopOf="@id/movie_release_year"
+            app:layout_constraintStart_toEndOf="@id/movie_release_year"
+            app:layout_constraintEnd_toStartOf="@id/right_guideline" />
 
         <ImageView
             android:id="@+id/star1"
@@ -168,9 +197,9 @@
             android:textStyle="bold"
             android:layout_marginTop="24dp"
             app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintTop_toBottomOf="@id/movie_release_year"
             app:layout_constraintStart_toEndOf="@id/left_guideline"
-            app:layout_constraintEnd_toStartOf="@id/right_guideline"
-            app:layout_constraintTop_toBottomOf="@id/reviews" />
+            app:layout_constraintEnd_toStartOf="@id/right_guideline" />
 
         <TextView
             android:id="@+id/storyline_description"

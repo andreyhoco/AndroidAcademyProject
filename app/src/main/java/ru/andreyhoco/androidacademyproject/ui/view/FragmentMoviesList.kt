@@ -16,7 +16,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -26,7 +25,7 @@ import ru.andreyhoco.androidacademyproject.ui.viewModels.MoviesListViewModel
 import ru.andreyhoco.androidacademyproject.ui.viewModels.MoviesListViewModelFactory
 import ru.andreyhoco.androidacademyproject.ui.adapters.MoviesAdapter
 import ru.andreyhoco.androidacademyproject.ui.adapters.OnMovieItemClicked
-import ru.andreyhoco.androidacademyproject.ui.uiDataModel.Movie
+import ru.andreyhoco.androidacademyproject.ui.uiDataModel.MovieShortDesc
 import ru.andreyhoco.ru.andreyhoco.androidacademyproject.ui.UiState
 import ru.andreyhoco.ru.andreyhoco.androidacademyproject.ui.diffUtils.MovieDiffCallback
 
@@ -60,11 +59,11 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
         val moviesAdapter = createAdapter(context)
         setUpMoviesList(moviesAdapter, context)
 
-        val repo = (requireActivity().application as TheMovieApp).appDi.movieRepository
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            repo.testAll()
-        }
+//        val repo = (requireActivity().application as TheMovieApp).appDi.movieRepository
+//
+//        lifecycleScope.launch(Dispatchers.IO) {
+//            repo.loadTopRatedMovies_new(1)
+//        }
 
         val moviesListViewModel: MoviesListViewModel = ViewModelProvider(
             this,
@@ -127,7 +126,7 @@ class FragmentMoviesList : Fragment(), OnMovieItemClicked {
         }
     }
 
-    private fun onMoviesChanged(movies: List<Movie>, moviesAdapter: MoviesAdapter) {
+    private fun onMoviesChanged(movies: List<MovieShortDesc>, moviesAdapter: MoviesAdapter) {
         val movieDiffCallback = MovieDiffCallback(moviesAdapter.movies, movies)
 
         val diff = DiffUtil.calculateDiff(movieDiffCallback)

@@ -37,4 +37,10 @@ interface MoviesDao {
 
     @Query("DELETE FROM Movies")
     suspend fun deleteAll()
+
+    @Query("UPDATE Movies SET number_of_ratings = :newNumOfRatings, ratings = :newRating WHERE movie_id = :id")
+    fun updateMovieByShortDesc(id: Long, newNumOfRatings: Int, newRating: Float)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertMovieShortDesc(movie: MovieEntity): Long
 }

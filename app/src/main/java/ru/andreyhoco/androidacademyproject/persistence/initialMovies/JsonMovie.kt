@@ -17,6 +17,8 @@ internal class JsonMovie(
     val actors: List<Long>,
     @SerialName("vote_average")
     val ratings: Float,
+    @SerialName("release_date")
+    val releaseDate: String,
     @SerialName("vote_count")
     val votesCount: Int,
     val overview: String,

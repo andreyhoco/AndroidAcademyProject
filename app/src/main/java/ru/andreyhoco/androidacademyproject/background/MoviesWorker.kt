@@ -3,7 +3,6 @@ package ru.andreyhoco.androidacademyproject.background
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import kotlinx.coroutines.flow.take
 import ru.andreyhoco.androidacademyproject.MovieNotifications
 import ru.andreyhoco.androidacademyproject.repositories.MovieRepository
 import ru.andreyhoco.androidacademyproject.repositories.RequestResult
@@ -20,11 +19,10 @@ class MoviesWorker(
 
     override suspend fun doWork(): Result {
         try {
-            val updateResult = repository.loadTopRatedMovies(1)
+            val updateResult = repository.loadTopRatedMoviesShortDesc(1)
 
             when (updateResult) {
                 is RequestResult.Success -> {
-                    val movies: List<Movie> 
                     movieNotifications.showMovieNotification(repository.getRandomTopRatedMovie())
                     return Result.success()
                 }
